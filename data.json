@@ -4,7 +4,10 @@
       "Fairmont": 85
     },
     "hotelInCharge": {
-      "Fairmont": "Salem Seif"
+      "Fairmont": "John Doe"
+    },
+    "inCharge": {
+      "?? Morning": "Salem Seif"
     }
   }
 }
