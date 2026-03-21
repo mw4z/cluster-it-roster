@@ -183,20 +183,16 @@
     }
 
     function changeDate(delta) {
-      if (availableDates.length > 0 && currentIndex >= 0) {
-        const newIdx = currentIndex + delta;
-        if (newIdx >= 0 && newIdx < availableDates.length) {
-          currentIndex = newIdx;
-          currentDate = new Date(availableDates[newIdx] + 'T12:00:00');
-          switchView(currentView);
-        }
-      } else {
-        currentDate.setDate(currentDate.getDate() + delta);
+      const newIdx = currentIndex + delta;
+      if (availableDates.length > 0 && newIdx >= 0 && newIdx < availableDates.length) {
+        currentIndex = newIdx;
+        currentDate = new Date(availableDates[newIdx] + 'T12:00:00');
+        currentRosterData = null;
         switchView(currentView);
       }
     }
 
-    function goToday() { currentDate = new Date(); switchView(currentView); }
+    function goToday() { currentDate = new Date(); currentRosterData = null; syncIndex(); switchView(currentView); }
 
     function getShiftClass(label) {
       if (label.includes('Morning')) return 'shift-morning';
@@ -272,28 +268,38 @@
       saveField('inCharge', ic).then(() => renderRoster());
     }
 
-    async function ensureRosterLoaded() {
-      if (!currentRosterData || currentRosterData.notFound) {
-        const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
-        const data = await res.json();
-        currentRosterData = data;
-        availableDates = data.availableDates || [];
+    async function ensureAvailableDates() {
+      if (availableDates.length > 0) return;
+      const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
+      const data = await res.json();
+      availableDates = data.availableDates || [];
 
-        if (data.notFound && availableDates.length > 0) {
-          const todayStr = formatDateParam(currentDate);
-          const future = availableDates.find(d => d >= todayStr);
-          const target = future || availableDates[availableDates.length - 1];
-          currentIndex = availableDates.indexOf(target);
-          currentDate = new Date(target + 'T12:00:00');
-          const res2 = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
-          currentRosterData = await res2.json();
-          availableDates = currentRosterData.availableDates || [];
-        }
-
-        const curMD = formatDateParam(currentDate).slice(5);
-        currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
-        if (currentIndex === -1) currentIndex = availableDates.indexOf(formatDateParam(currentDate));
+      if (data.notFound && availableDates.length > 0) {
+        const todayStr = formatDateParam(currentDate);
+        const future = availableDates.find(d => d >= todayStr);
+        const target = future || availableDates[availableDates.length - 1];
+        currentIndex = availableDates.indexOf(target);
+        currentDate = new Date(target + 'T12:00:00');
       }
+
+      const curMD = formatDateParam(currentDate).slice(5);
+      currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
+      if (currentIndex === -1) currentIndex = availableDates.indexOf(formatDateParam(currentDate));
+    }
+
+    function syncIndex() {
+      const dateStr = formatDateParam(currentDate);
+      currentIndex = availableDates.indexOf(dateStr);
+      if (currentIndex === -1) {
+        const curMD = dateStr.slice(5);
+        currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
+      }
+    }
+
+    async function fetchRoster() {
+      const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
+      currentRosterData = await res.json();
+      if (availableDates.length === 0) availableDates = currentRosterData.availableDates || [];
       await loadDailyData(currentRosterData.date);
     }
 
@@ -375,10 +381,11 @@
     async function loadRoster() {
       const content = document.getElementById('content');
       content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
-      currentRosterData = null;
 
       try {
-        await ensureRosterLoaded();
+        await ensureAvailableDates();
+        syncIndex();
+        await fetchRoster();
         updateNav();
         renderRoster();
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
@@ -392,6 +399,9 @@
       content.innerHTML = '<div class="loading"><div class="spinner"></div>Checking...</div>';
       statsBar.innerHTML = '';
       try {
+        await ensureAvailableDates();
+        syncIndex();
+        updateNav();
         const res = await fetch('/api/office-now');
         const data = await res.json();
         statsBar.innerHTML = `
@@ -414,7 +424,9 @@
       content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
       try {
-        await ensureRosterLoaded();
+        await ensureAvailableDates();
+        syncIndex();
+        await loadDailyData(formatDateParam(currentDate));
         updateNav();
 
         const occ = currentDailyData.occupancy || {};
@@ -449,7 +461,9 @@
       content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
 
       try {
-        await ensureRosterLoaded();
+        await ensureAvailableDates();
+        syncIndex();
+        await loadDailyData(formatDateParam(currentDate));
         updateNav();
 
         const ic = currentDailyData.hotelInCharge || {};
@@ -489,6 +503,9 @@
       document.getElementById('eidBanner').style.display = 'none';
       statsBar.innerHTML = '';
       try {
+        await ensureAvailableDates();
+        syncIndex();
+        updateNav();
         const res = await fetch('/api/salary');
         const data = await res.json();
         statsBar.innerHTML = `
