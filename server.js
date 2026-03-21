@@ -1,13 +1,10 @@
 const express = require('express');
 const path = require('path');
-const fs = require('fs');
-const { MongoClient } = require('mongodb');
 const config = require('./config');
 const { loadWorkbook, findDateColumn, parseShift, parseCellDate } = require('./main');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DATA_FILE = path.join(__dirname, 'data.json');
 const TZ = 'Asia/Riyadh';
 
 function nowInRiyadh() {
@@ -15,64 +12,15 @@ function nowInRiyadh() {
   return new Date(str);
 }
 
-// --- MongoDB connection ---
-let db = null;
-async function getDb() {
-  if (db) return db;
-  const uri = process.env.MONGODB_URI;
-  if (!uri) return null;
-  try {
-    const client = new MongoClient(uri);
-    await client.connect();
-    db = client.db('cluster-roster');
-    console.log('Connected to MongoDB');
-    return db;
-  } catch (e) {
-    console.error('MongoDB connection failed:', e.message);
-    return null;
-  }
+// --- Daily Data storage (in-memory) ---
+const store = {};
+
+function loadDailyData(date) {
+  return store[date] || { occupancy: {}, hotelInCharge: {}, inCharge: {} };
 }
 
-// --- Daily Data storage (MongoDB with in-memory cache) ---
-const cache = {};
-
-async function loadDailyData(date) {
-  const empty = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
-  if (cache[date]) return cache[date];
-  const mongo = await getDb();
-  if (mongo) {
-    const doc = await mongo.collection('dailyData').findOne({ _id: date });
-    if (doc) { delete doc._id; cache[date] = doc; return doc; }
-    cache[date] = empty;
-    return empty;
-  }
-  // File fallback (local dev)
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      const all = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      cache[date] = all[date] || empty;
-      return cache[date];
-    }
-  } catch (e) {}
-  return empty;
-}
-
-async function saveDailyData(date, data) {
-  cache[date] = data;
-  const mongo = await getDb();
-  if (mongo) {
-    await mongo.collection('dailyData').updateOne(
-      { _id: date }, { $set: data }, { upsert: true }
-    );
-    return;
-  }
-  // File fallback (local dev)
-  let all = {};
-  try {
-    if (fs.existsSync(DATA_FILE)) all = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-  } catch (e) {}
-  all[date] = data;
-  fs.writeFileSync(DATA_FILE, JSON.stringify(all, null, 2), 'utf8');
+function saveDailyData(date, data) {
+  store[date] = data;
 }
 
 function formatDate(d) {
@@ -86,17 +34,17 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // GET daily data for a date
-app.get('/api/daily-data', async (req, res) => {
+app.get('/api/daily-data', (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: 'Date required' });
-  res.json(await loadDailyData(date));
+  res.json(loadDailyData(date));
 });
 
 // POST save daily data for a date
-app.post('/api/daily-data', async (req, res) => {
+app.post('/api/daily-data', (req, res) => {
   const { date, occupancy, hotelInCharge, inCharge } = req.body;
   if (!date) return res.status(400).json({ error: 'Date required' });
-  await saveDailyData(date, { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {}, inCharge: inCharge || {} });
+  saveDailyData(date, { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {}, inCharge: inCharge || {} });
   res.json({ success: true });
 });
 
@@ -242,17 +190,9 @@ function keepAlive() {
   }
 }
 
-// Connect to MongoDB at startup, then start server
-getDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Dashboard running at http://localhost:${PORT}`);
-    keepAlive();
-  });
-}).catch(() => {
-  app.listen(PORT, () => {
-    console.log(`Dashboard running at http://localhost:${PORT} (no MongoDB)`);
-    keepAlive();
-  });
+app.listen(PORT, () => {
+  console.log(`Dashboard running at http://localhost:${PORT}`);
+  keepAlive();
 });
 
 module.exports = app;
