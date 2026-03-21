@@ -211,8 +211,27 @@ app.get('/api/salary', (req, res) => {
   res.json({ daysLeft: diff, salaryDate: salaryStr });
 });
 
-app.listen(PORT, () => {
-  console.log(`Dashboard running at http://localhost:${PORT}`);
+// Keep alive — ping self every 14 min to prevent Render free tier sleep
+function keepAlive() {
+  const url = process.env.RENDER_EXTERNAL_URL;
+  if (url) {
+    setInterval(() => {
+      require('https').get(url, () => {}).on('error', () => {});
+    }, 14 * 60 * 1000);
+  }
+}
+
+// Connect to MongoDB at startup, then start server
+getDb().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Dashboard running at http://localhost:${PORT}`);
+    keepAlive();
+  });
+}).catch(() => {
+  app.listen(PORT, () => {
+    console.log(`Dashboard running at http://localhost:${PORT} (no MongoDB)`);
+    keepAlive();
+  });
 });
 
 module.exports = app;
