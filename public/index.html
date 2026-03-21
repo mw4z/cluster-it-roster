@@ -52,6 +52,8 @@
     .emp-name { flex: 1; }
     .emp-time { font-size: 0.75rem; color: #64748b; background: #1e293b; padding: 2px 8px; border-radius: 4px; }
     .called-in-badge { font-size: 0.65rem; background: #991b1b; color: #fca5a5; padding: 2px 6px; border-radius: 4px; }
+    .employee-row.is-incharge { border-left: 3px solid #f59e0b; background: #1a1708; }
+    .incharge-badge { font-size: 0.65rem; background: #854d0e; color: #fef3c7; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
 
     /* Panel (shared) */
     .panel { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; }
@@ -266,7 +268,7 @@
       document.querySelectorAll('.incharge-select').forEach(sel => {
         if (sel.value) ic[sel.dataset.shift] = sel.value;
       });
-      saveField('inCharge', ic);
+      saveField('inCharge', ic).then(() => renderRoster());
     }
 
     async function ensureRosterLoaded() {
@@ -305,74 +307,77 @@
     }
 
     // ==================== ROSTER ====================
-    async function loadRoster() {
+    function renderRoster() {
       const content = document.getElementById('content');
       const statsBar = document.getElementById('statsBar');
+      const data = currentRosterData;
+      if (!data) return;
+
+      let totalWorking = 0, totalOff = 0;
+      data.shifts.forEach(s => {
+        const lbl = s.label;
+        if (['Morning','Between','Evening','Night','Task','Training'].some(w => lbl.includes(w))) totalWorking += s.employees.length;
+        else totalOff += s.employees.length;
+      });
+
+      statsBar.innerHTML = `
+        <div class="stat"><div class="value">${totalWorking}</div><div class="label">Working</div></div>
+        <div class="stat"><div class="value">${totalOff}</div><div class="label">Off / Leave</div></div>
+        <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>`;
+
+      if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
+
+      const workingShifts = data.shifts.filter(s =>
+        ['Morning','Between','Evening','Night'].some(w => s.label.includes(w))
+      );
+
+      const savedIC = currentDailyData.inCharge || {};
+
+      let html = '';
+      data.shifts.forEach(shift => {
+        const cls = getShiftClass(shift.label);
+        const icName = savedIC[shift.label] || '';
+        html += `<div class="shift-card ${cls}"><div class="shift-header">${shift.label}<span class="count">${shift.employees.length}</span></div><div class="shift-body">`;
+        shift.employees.forEach(emp => {
+          const isIC = icName && emp.name === icName;
+          const ci = emp.calledIn ? ' called-in' : (isIC ? ' is-incharge' : '');
+          const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : (isIC ? '<span class="incharge-badge">🔑 IN-CHARGE</span>' : '');
+          const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
+          html += `<div class="employee-row${ci}"><span class="emp-name">${emp.name}</span>${time}${badge}</div>`;
+        });
+        html += '</div></div>';
+      });
+
+      // In-Charge per shift section
+      if (workingShifts.length > 0) {
+        html += '<div class="panel"><h3>🔑 In-Charge Per Shift</h3>';
+        workingShifts.forEach(s => {
+          const saved = savedIC[s.label] || '';
+          html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+            <label style="font-size:0.85rem; color:#f59e0b; font-weight:600; min-width:120px;">${s.label}</label>
+            <select class="incharge-select" data-shift="${s.label}" onchange="saveInCharge()"
+              style="flex:1; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;">
+              <option value="">-- Select --</option>`;
+          s.employees.forEach(emp => {
+            html += `<option value="${emp.name}"${emp.name === saved ? ' selected' : ''}>${emp.name}</option>`;
+          });
+          html += `</select></div>`;
+        });
+        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
+      }
+
+      content.innerHTML = html;
+    }
+
+    async function loadRoster() {
+      const content = document.getElementById('content');
       content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
       currentRosterData = null;
 
       try {
         await ensureRosterLoaded();
         updateNav();
-        const data = currentRosterData;
-
-        let totalWorking = 0, totalOff = 0;
-        data.shifts.forEach(s => {
-          const lbl = s.label;
-          if (['Morning','Between','Evening','Night','Task','Training'].some(w => lbl.includes(w))) totalWorking += s.employees.length;
-          else totalOff += s.employees.length;
-        });
-
-        statsBar.innerHTML = `
-          <div class="stat"><div class="value">${totalWorking}</div><div class="label">Working</div></div>
-          <div class="stat"><div class="value">${totalOff}</div><div class="label">Off / Leave</div></div>
-          <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>`;
-
-        if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
-
-        // Get working shifts for in-charge dropdown
-        const workingShifts = data.shifts.filter(s =>
-          ['Morning','Between','Evening','Night'].some(w => s.label.includes(w))
-        );
-        const allWorkingNames = [];
-        workingShifts.forEach(s => s.employees.forEach(e => {
-          if (!allWorkingNames.includes(e.name)) allWorkingNames.push(e.name);
-        }));
-
-        const savedIC = currentDailyData.inCharge || {};
-
-        let html = '';
-        data.shifts.forEach(shift => {
-          const cls = getShiftClass(shift.label);
-          html += `<div class="shift-card ${cls}"><div class="shift-header">${shift.label}<span class="count">${shift.employees.length}</span></div><div class="shift-body">`;
-          shift.employees.forEach(emp => {
-            const ci = emp.calledIn ? ' called-in' : '';
-            const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : '';
-            const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
-            html += `<div class="employee-row${ci}"><span class="emp-name">${emp.name}</span>${time}${badge}</div>`;
-          });
-          html += '</div></div>';
-        });
-
-        // In-Charge per shift section
-        if (workingShifts.length > 0) {
-          html += '<div class="panel"><h3>🔑 In-Charge Per Shift</h3>';
-          workingShifts.forEach(s => {
-            const saved = savedIC[s.label] || '';
-            html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-              <label style="font-size:0.85rem; color:#f59e0b; font-weight:600; min-width:120px;">${s.label}</label>
-              <select class="incharge-select" data-shift="${s.label}" onchange="saveInCharge()"
-                style="flex:1; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;">
-                <option value="">-- Select --</option>`;
-            s.employees.forEach(emp => {
-              html += `<option value="${emp.name}"${emp.name === saved ? ' selected' : ''}>${emp.name}</option>`;
-            });
-            html += `</select></div>`;
-          });
-          html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
-        }
-
-        content.innerHTML = html;
+        renderRoster();
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
 
