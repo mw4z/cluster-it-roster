@@ -7,6 +7,12 @@ const { loadWorkbook, findDateColumn, parseShift, parseCellDate } = require('./m
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data.json');
+const TZ = 'Asia/Riyadh';
+
+function nowInRiyadh() {
+  const str = new Date().toLocaleString('en-CA', { timeZone: TZ, hour12: false });
+  return new Date(str);
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -116,9 +122,9 @@ app.get('/api/office-now', (req, res) => {
     const rawData = loadWorkbook();
     if (!rawData) return res.status(500).json({ error: 'Shift file not found' });
 
-    const now = new Date();
+    const now = nowInRiyadh();
     const hour = now.getHours();
-    const adjustedDate = new Date();
+    const adjustedDate = nowInRiyadh();
     if (hour < 8) adjustedDate.setDate(adjustedDate.getDate() - 1);
 
     const dateCol = findDateColumn(rawData[0], adjustedDate);
@@ -143,8 +149,9 @@ app.get('/api/office-now', (req, res) => {
       }
     }
 
+    const timeStr = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: TZ });
     res.json({
-      time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      time: timeStr,
       activeShifts: activeCodes, employees
     });
   } catch (err) {
@@ -156,7 +163,7 @@ app.get('/api/office-now', (req, res) => {
 // --- Salary API ---
 app.get('/api/salary', (req, res) => {
   const { salaryDay } = config;
-  const today = new Date();
+  const today = nowInRiyadh();
   const currentDay = today.getDate();
   const afterSalary = currentDay > salaryDay;
   const nextMonth = afterSalary ? today.getMonth() + 1 : today.getMonth();
