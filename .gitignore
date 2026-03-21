@@ -1,0 +1,7 @@
+node_modules/
+.env
+user-data/
+.wwebjs_auth/
+.wwebjs_cache/
+group_id_log.txt
+package-lock.json

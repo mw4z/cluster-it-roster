@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cluster IT Support - Roster</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
+      padding: 20px;
+      text-align: center;
+      border-bottom: 2px solid #334155;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header h1 { font-size: 1.4rem; color: #60a5fa; margin-bottom: 8px; }
+
+    .eid-banner {
+      background: linear-gradient(135deg, #854d0e, #a16207, #854d0e);
+      color: #fef3c7;
+      padding: 12px;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: none;
+    }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .date-nav button {
+      background: #334155;
+      color: #e2e8f0;
+      border: 1px solid #475569;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s;
+    }
+
+    .date-nav button:hover { background: #475569; }
+    .date-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
+    .date-nav button.today-btn { background: #2563eb; border-color: #3b82f6; }
+    .date-nav button.today-btn:hover { background: #1d4ed8; }
+
+    .date-display {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      min-width: 200px;
+      text-align: center;
+    }
+
+    .date-display .day-name { color: #60a5fa; font-size: 0.85rem; }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      overflow-x: auto;
+    }
+
+    .tab {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid #475569;
+      background: transparent;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab:hover { color: #e2e8f0; border-color: #60a5fa; }
+    .tab.active { background: #2563eb; color: white; border-color: #2563eb; }
+
+    /* Stats bar */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 14px 20px;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 6px 14px;
+      background: #0f172a;
+      border-radius: 10px;
+      border: 1px solid #334155;
+    }
+
+    .stat .value { font-size: 1.3rem; font-weight: 700; color: #60a5fa; }
+    .stat .label { font-size: 0.7rem; color: #94a3b8; margin-top: 2px; }
+
+    /* Content */
+    .content { max-width: 700px; margin: 0 auto; padding: 16px; }
+
+    .shift-card {
+      background: #1e293b;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      border: 1px solid #334155;
+    }
+
+    .shift-header {
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shift-header .count {
+      margin-left: auto;
+      background: #334155;
+      padding: 2px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .shift-morning .shift-header { border-left: 4px solid #06b6d4; }
+    .shift-between .shift-header { border-left: 4px solid #f59e0b; }
+    .shift-evening .shift-header { border-left: 4px solid #a855f7; }
+    .shift-night .shift-header { border-left: 4px solid #6366f1; }
+    .shift-off .shift-header { border-left: 4px solid #6b7280; }
+    .shift-leave .shift-header { border-left: 4px solid #22c55e; }
+    .shift-task .shift-header { border-left: 4px solid #ec4899; }
+    .shift-holiday .shift-header { border-left: 4px solid #eab308; }
+
+    .shift-body { padding: 0 18px 12px; }
+
+    .employee-row {
+      padding: 8px 12px;
+      margin: 4px 0;
+      background: #0f172a;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .employee-row.called-in {
+      border-left: 3px solid #ef4444;
+      background: #1c1117;
+    }
+
+    .emp-name { flex: 1; }
+
+    .emp-time {
+      font-size: 0.75rem;
+      color: #64748b;
+      background: #1e293b;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .called-in-badge {
+      font-size: 0.65rem;
+      background: #991b1b;
+      color: #fca5a5;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Office Now */
+    .office-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+      border: 1px solid #334155;
+    }
+
+    .office-panel h3 { color: #60a5fa; margin-bottom: 12px; font-size: 1rem; }
+
+    .employee-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .emp-chip {
+      background: #0f172a;
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      border: 1px solid #334155;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .emp-chip .chip-time {
+      font-size: 0.7rem;
+      color: #64748b;
+    }
+
+    /* Loading & errors */
+    .loading { text-align: center; padding: 60px 20px; color: #64748b; }
+
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid #334155;
+      border-top-color: #60a5fa;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 12px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      text-align: center; padding: 40px; color: #f87171;
+      background: #1e293b; border-radius: 12px; margin: 20px;
+    }
+
+    .empty-msg { text-align: center; padding: 30px; color: #64748b; font-size: 0.9rem; }
+
+    .refresh-info {
+      text-align: center; padding: 8px; font-size: 0.7rem; color: #475569;
+    }
+
+    .live-dot {
+      display: inline-block; width: 6px; height: 6px;
+      background: #22c55e; border-radius: 50%; margin-right: 4px;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    @media (max-width: 600px) {
+      .header h1 { font-size: 1.1rem; }
+      .date-nav button { padding: 6px 12px; font-size: 0.85rem; }
+      .date-display { font-size: 0.95rem; min-width: 150px; }
+      .stats-bar { gap: 10px; }
+      .stat { padding: 4px 10px; }
+      .stat .value { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Cluster IT Support - Daily Roster</h1>
+    <div class="date-nav">
+      <button id="prevBtn" onclick="changeDate(-1)">&#9664;</button>
+      <div class="date-display">
+        <div class="day-name" id="dayName"></div>
+        <div id="dateText"></div>
+      </div>
+      <button id="nextBtn" onclick="changeDate(1)">&#9654;</button>
+      <button class="today-btn" onclick="goToday()">Today</button>
+    </div>
+  </div>
+
+  <div class="eid-banner" id="eidBanner">🌙✨ Eid Mubarak! ✨🌙</div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="roster" onclick="switchView('roster')">Roster</button>
+    <button class="tab" data-view="office" onclick="switchView('office')">In Office Now</button>
+    <button class="tab" data-view="salary" onclick="switchView('salary')">Salary</button>
+  </div>
+
+  <div class="stats-bar" id="statsBar"></div>
+
+  <div class="content" id="content">
+    <div class="loading"><div class="spinner"></div>Loading roster...</div>
+  </div>
+
+  <div class="refresh-info">
+    <span class="live-dot"></span> Auto-refreshes every 5 minutes
+  </div>
+
+  <script>
+    let currentDate = new Date();
+    let availableDates = [];
+    let currentIndex = -1; // index in availableDates
+    let currentView = 'roster';
+
+    function formatDateParam(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${dd}`;
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector(`[data-view="${view}"]`).classList.add('active');
+      if (view === 'roster') loadRoster();
+      else if (view === 'office') loadOfficeNow();
+      else if (view === 'salary') loadSalary();
+    }
+
+    function changeDate(delta) {
+      if (availableDates.length > 0 && currentIndex >= 0) {
+        const newIdx = currentIndex + delta;
+        if (newIdx >= 0 && newIdx < availableDates.length) {
+          currentIndex = newIdx;
+          currentDate = new Date(availableDates[newIdx] + 'T12:00:00');
+          loadRoster();
+        }
+      } else {
+        currentDate.setDate(currentDate.getDate() + delta);
+        loadRoster();
+      }
+    }
+
+    function goToday() {
+      currentDate = new Date();
+      loadRoster();
+    }
+
+    function getShiftClass(label) {
+      if (label.includes('Morning')) return 'shift-morning';
+      if (label.includes('Between')) return 'shift-between';
+      if (label.includes('Evening')) return 'shift-evening';
+      if (label.includes('Night')) return 'shift-night';
+      if (label.includes('Day Off') || label.includes('Pending') || label.includes('Compensation')) return 'shift-off';
+      if (label.includes('Task') || label.includes('Training')) return 'shift-task';
+      if (label.includes('Holiday') || label.includes('Eid')) return 'shift-holiday';
+      if (label.includes('Leave') || label.includes('Sick') || label.includes('Vacation')) return 'shift-leave';
+      return 'shift-off';
+    }
+
+    async function loadRoster() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      const eidBanner = document.getElementById('eidBanner');
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
+
+      try {
+        const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
+        if (!res.ok) {
+          const err = await res.json();
+          content.innerHTML = `<div class="error-msg">${err.error || 'Failed to load roster'}</div>`;
+          statsBar.innerHTML = '';
+          eidBanner.style.display = 'none';
+          return;
+        }
+
+        const data = await res.json();
+        availableDates = data.availableDates || [];
+
+        // If date not in roster, auto-jump to nearest available date
+        if (data.notFound && availableDates.length > 0) {
+          const todayStr = formatDateParam(currentDate);
+          const future = availableDates.find(d => d >= todayStr);
+          const target = future || availableDates[availableDates.length - 1];
+          currentIndex = availableDates.indexOf(target);
+          currentDate = new Date(target + 'T12:00:00');
+          loadRoster();
+          return;
+        }
+
+        // Find current index by matching month-day (year may differ)
+        const curMD = formatDateParam(currentDate).slice(5); // "MM-DD"
+        currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
+        // Fallback: exact match
+        if (currentIndex === -1) currentIndex = availableDates.indexOf(formatDateParam(currentDate));
+
+        document.getElementById('dayName').textContent = data.dayName;
+        document.getElementById('dateText').textContent = data.dateFormatted;
+        eidBanner.style.display = data.isEid ? 'block' : 'none';
+
+        // Stats
+        let totalWorking = 0, totalOff = 0;
+        data.shifts.forEach(s => {
+          const lbl = s.label;
+          if (lbl.includes('Off') || lbl.includes('Leave') || lbl.includes('Holiday') ||
+              lbl.includes('Sick') || lbl.includes('Vacation') || lbl.includes('Pending')) {
+            totalOff += s.employees.length;
+          } else {
+            totalWorking += s.employees.length;
+          }
+        });
+
+        statsBar.innerHTML = `
+          <div class="stat"><div class="value">${totalWorking}</div><div class="label">Working</div></div>
+          <div class="stat"><div class="value">${totalOff}</div><div class="label">Off / Leave</div></div>
+          <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>
+        `;
+
+        // Nav limits
+        document.getElementById('prevBtn').disabled = currentIndex <= 0;
+        document.getElementById('nextBtn').disabled = currentIndex >= availableDates.length - 1;
+
+        if (data.shifts.length === 0) {
+          content.innerHTML = '<div class="empty-msg">No roster data found for this date.</div>';
+          return;
+        }
+
+        let html = '';
+        data.shifts.forEach(shift => {
+          const cls = getShiftClass(shift.label);
+          html += `
+            <div class="shift-card ${cls}">
+              <div class="shift-header">
+                ${shift.label}
+                <span class="count">${shift.employees.length}</span>
+              </div>
+              <div class="shift-body">`;
+
+          shift.employees.forEach(emp => {
+            const calledInClass = emp.calledIn ? ' called-in' : '';
+            const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : '';
+            const timeTag = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
+            html += `
+              <div class="employee-row${calledInClass}">
+                <span class="emp-name">${emp.name}</span>
+                ${timeTag}
+                ${badge}
+              </div>`;
+          });
+
+          html += '</div></div>';
+        });
+
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = `<div class="error-msg">Connection error: ${err.message}</div>`;
+      }
+    }
+
+    async function loadOfficeNow() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      document.getElementById('eidBanner').style.display = 'none';
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Checking who\'s in office...</div>';
+      statsBar.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/office-now');
+        const data = await res.json();
+
+        statsBar.innerHTML = `
+          <div class="stat"><div class="value">${data.employees ? data.employees.length : 0}</div><div class="label">In Office</div></div>
+          <div class="stat"><div class="value">${data.time || '--:--'}</div><div class="label">Current Time</div></div>
+          <div class="stat"><div class="value">${(data.activeShifts || []).join(', ') || '-'}</div><div class="label">Active Shifts</div></div>
+        `;
+
+        if (!data.employees || data.employees.length === 0) {
+          content.innerHTML = '<div class="empty-msg">No one is currently in the office based on shift schedule.</div>';
+          return;
+        }
+
+        let html = '<div class="office-panel"><h3>Currently in Office</h3><div class="employee-chips">';
+        data.employees.forEach(emp => {
+          const time = emp.rawTime ? `<span class="chip-time">${emp.rawTime}</span>` : '';
+          html += `<div class="emp-chip">${emp.name}${time}</div>`;
+        });
+        html += '</div></div>';
+        content.innerHTML = html;
+      } catch (err) {
+        content.innerHTML = `<div class="error-msg">Connection error: ${err.message}</div>`;
+      }
+    }
+
+    async function loadSalary() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      document.getElementById('eidBanner').style.display = 'none';
+      statsBar.innerHTML = '';
+
+      try {
+        const res = await fetch('/api/salary');
+        const data = await res.json();
+
+        statsBar.innerHTML = `
+          <div class="stat"><div class="value">${data.daysLeft}</div><div class="label">Days Left</div></div>
+          <div class="stat"><div class="value">${data.salaryDate}</div><div class="label">Salary Date</div></div>
+        `;
+
+        const progress = Math.max(0, Math.min(100, ((30 - data.daysLeft) / 30) * 100));
+        content.innerHTML = `
+          <div class="office-panel" style="text-align:center;">
+            <h3>Salary Countdown</h3>
+            <div style="font-size:3rem; font-weight:700; color:#60a5fa; margin:20px 0;">${data.daysLeft} days</div>
+            <div style="background:#0f172a; border-radius:10px; height:20px; overflow:hidden; margin:16px 0;">
+              <div style="background:linear-gradient(90deg,#2563eb,#60a5fa); height:100%; width:${progress}%; border-radius:10px; transition:width 0.5s;"></div>
+            </div>
+            <div style="color:#94a3b8; font-size:0.85rem;">Next salary: ${data.salaryDate}</div>
+          </div>
+        `;
+      } catch (err) {
+        content.innerHTML = `<div class="error-msg">Connection error: ${err.message}</div>`;
+      }
+    }
+
+    // Initial load
+    loadRoster();
+
+    // Auto-refresh every 5 minutes
+    setInterval(() => {
+      if (currentView === 'roster') loadRoster();
+      else if (currentView === 'office') loadOfficeNow();
+      else if (currentView === 'salary') loadSalary();
+    }, 5 * 60 * 1000);
+  </script>
+</body>
+</html>
