@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const { MongoClient } = require('mongodb');
 const config = require('./config');
 const { loadWorkbook, findDateColumn, parseShift, parseCellDate } = require('./main');
 
@@ -14,38 +15,74 @@ function nowInRiyadh() {
   return new Date(str);
 }
 
+// --- MongoDB connection ---
+let db = null;
+async function getDb() {
+  if (db) return db;
+  const uri = process.env.MONGODB_URI;
+  if (!uri) return null;
+  try {
+    const client = new MongoClient(uri);
+    await client.connect();
+    db = client.db('cluster-roster');
+    console.log('Connected to MongoDB');
+    return db;
+  } catch (e) {
+    console.error('MongoDB connection failed:', e.message);
+    return null;
+  }
+}
+
+// --- Daily Data storage (MongoDB with file fallback) ---
+async function loadDailyData(date) {
+  const mongo = await getDb();
+  if (mongo) {
+    const doc = await mongo.collection('dailyData').findOne({ _id: date });
+    if (doc) { delete doc._id; return doc; }
+    return { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+  }
+  // File fallback (local dev)
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const all = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+      return all[date] || { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+    }
+  } catch (e) {}
+  return { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+}
+
+async function saveDailyData(date, data) {
+  const mongo = await getDb();
+  if (mongo) {
+    await mongo.collection('dailyData').updateOne(
+      { _id: date }, { $set: data }, { upsert: true }
+    );
+    return;
+  }
+  // File fallback (local dev)
+  let all = {};
+  try {
+    if (fs.existsSync(DATA_FILE)) all = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  } catch (e) {}
+  all[date] = data;
+  fs.writeFileSync(DATA_FILE, JSON.stringify(all, null, 2), 'utf8');
+}
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// --- Daily Data (Occupancy + In-Charge) ---
-function loadData() {
-  try {
-    if (fs.existsSync(DATA_FILE)) {
-      return JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-    }
-  } catch (e) {}
-  return {};
-}
-
-function saveData(data) {
-  fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8');
-}
-
 // GET daily data for a date
-app.get('/api/daily-data', (req, res) => {
+app.get('/api/daily-data', async (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: 'Date required' });
-  const all = loadData();
-  res.json(all[date] || { occupancy: {}, hotelInCharge: {}, inCharge: {} });
+  res.json(await loadDailyData(date));
 });
 
 // POST save daily data for a date
-app.post('/api/daily-data', (req, res) => {
+app.post('/api/daily-data', async (req, res) => {
   const { date, occupancy, hotelInCharge, inCharge } = req.body;
   if (!date) return res.status(400).json({ error: 'Date required' });
-  const all = loadData();
-  all[date] = { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {}, inCharge: inCharge || {} };
-  saveData(all);
+  await saveDailyData(date, { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {}, inCharge: inCharge || {} });
   res.json({ success: true });
 });
 
