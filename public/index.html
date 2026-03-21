@@ -89,11 +89,11 @@
     .ic-card .ic-hotel-sub { font-size: 0.7rem; color: #64748b; }
     .ic-field { display: flex; align-items: center; gap: 10px; }
     .ic-field label { font-size: 0.8rem; color: #f59e0b; font-weight: 600; white-space: nowrap; }
-    .ic-field select {
+    .ic-field input, .ic-field select {
       flex: 1; background: #1e293b; border: 1px solid #475569; color: #e2e8f0;
-      padding: 8px 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+      padding: 8px 10px; border-radius: 8px; font-size: 0.85rem;
     }
-    .ic-field select:focus { outline: none; border-color: #f59e0b; }
+    .ic-field input:focus, .ic-field select:focus { outline: none; border-color: #f59e0b; }
     .ic-current { margin-top: 8px; font-size: 0.8rem; color: #94a3b8; }
     .ic-current strong { color: #f59e0b; }
 
@@ -139,7 +139,7 @@
     <button class="tab active" data-view="roster" onclick="switchView('roster')">Roster</button>
     <button class="tab" data-view="office" onclick="switchView('office')">In Office</button>
     <button class="tab" data-view="occupancy" onclick="switchView('occupancy')">Occupancy</button>
-    <button class="tab" data-view="incharge" onclick="switchView('incharge')">In-Charge</button>
+    <button class="tab" data-view="incharge" onclick="switchView('incharge')">Hotel In-Charge</button>
     <button class="tab" data-view="salary" onclick="switchView('salary')">Salary</button>
   </div>
 
@@ -155,13 +155,13 @@
     let currentIndex = -1;
     let currentView = 'roster';
     let currentRosterData = null;
-    let currentDailyData = { occupancy: {}, hotelInCharge: {} };
+    let currentDailyData = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
 
     const hotels = [
       { key: 'Fairmont', name: 'Fairmont Hotel', icon: '🏨' },
-      { key: 'Raffles', name: 'Raffles Hotel', icon: '🏰' },
-      { key: 'SwissMakkah', name: 'Swiss Makkah Hotel', icon: '🕋' },
-      { key: 'SwissAlMaqam', name: 'Swiss Al Maqam Hotel', icon: '🌙' }
+      { key: 'Raffles', name: 'Raffles Hotel', icon: '🏨' },
+      { key: 'SwissMakkah', name: 'Swiss Makkah Hotel', icon: '🏨' },
+      { key: 'SwissAlMaqam', name: 'Swiss Al Maqam Hotel', icon: '🏨' }
     ];
 
     function formatDateParam(d) {
@@ -213,8 +213,9 @@
         currentDailyData = await res.json();
         if (!currentDailyData.occupancy) currentDailyData.occupancy = {};
         if (!currentDailyData.hotelInCharge) currentDailyData.hotelInCharge = {};
+        if (!currentDailyData.inCharge) currentDailyData.inCharge = {};
       } catch (e) {
-        currentDailyData = { occupancy: {}, hotelInCharge: {} };
+        currentDailyData = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
       }
     }
 
@@ -254,10 +255,18 @@
     function saveHotelInCharge() {
       const ic = {};
       hotels.forEach(h => {
-        const sel = document.getElementById('ic-' + h.key);
-        if (sel && sel.value) ic[h.key] = sel.value;
+        const input = document.getElementById('ic-' + h.key);
+        if (input && input.value.trim()) ic[h.key] = input.value.trim();
       });
       saveField('hotelInCharge', ic);
+    }
+
+    function saveInCharge() {
+      const ic = {};
+      document.querySelectorAll('.incharge-select').forEach(sel => {
+        if (sel.value) ic[sel.dataset.shift] = sel.value;
+      });
+      saveField('inCharge', ic);
     }
 
     async function ensureRosterLoaded() {
@@ -321,6 +330,17 @@
 
         if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
 
+        // Get working shifts for in-charge dropdown
+        const workingShifts = data.shifts.filter(s =>
+          ['Morning','Between','Evening','Night'].some(w => s.label.includes(w))
+        );
+        const allWorkingNames = [];
+        workingShifts.forEach(s => s.employees.forEach(e => {
+          if (!allWorkingNames.includes(e.name)) allWorkingNames.push(e.name);
+        }));
+
+        const savedIC = currentDailyData.inCharge || {};
+
         let html = '';
         data.shifts.forEach(shift => {
           const cls = getShiftClass(shift.label);
@@ -333,6 +353,25 @@
           });
           html += '</div></div>';
         });
+
+        // In-Charge per shift section
+        if (workingShifts.length > 0) {
+          html += '<div class="panel"><h3>🔑 In-Charge Per Shift</h3>';
+          workingShifts.forEach(s => {
+            const saved = savedIC[s.label] || '';
+            html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+              <label style="font-size:0.85rem; color:#f59e0b; font-weight:600; min-width:120px;">${s.label}</label>
+              <select class="incharge-select" data-shift="${s.label}" onchange="saveInCharge()"
+                style="flex:1; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;">
+                <option value="">-- Select --</option>`;
+            s.employees.forEach(emp => {
+              html += `<option value="${emp.name}"${emp.name === saved ? ' selected' : ''}>${emp.name}</option>`;
+            });
+            html += `</select></div>`;
+          });
+          html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
+        }
+
         content.innerHTML = html;
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
@@ -395,7 +434,7 @@
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
 
-    // ==================== IN-CHARGE (Hotel GM Replacement) ====================
+    // ==================== HOTEL IN-CHARGE (GM Replacement) ====================
     async function loadInCharge() {
       const content = document.getElementById('content');
       const statsBar = document.getElementById('statsBar');
@@ -404,27 +443,15 @@
       try {
         await ensureRosterLoaded();
         updateNav();
-        const data = currentRosterData;
-
-        // Get all working employees for this date
-        const workingEmployees = [];
-        data.shifts.forEach(s => {
-          if (['Morning','Between','Evening','Night'].some(w => s.label.includes(w))) {
-            s.employees.forEach(emp => {
-              if (!workingEmployees.includes(emp.name)) workingEmployees.push(emp.name);
-            });
-          }
-        });
 
         const ic = currentDailyData.hotelInCharge || {};
         const assigned = Object.values(ic).filter(v => v).length;
 
         statsBar.innerHTML = `
-          <div class="stat"><div class="value">${assigned}/${hotels.length}</div><div class="label">Assigned</div></div>
-          <div class="stat"><div class="value">${workingEmployees.length}</div><div class="label">Available</div></div>`;
+          <div class="stat"><div class="value">${assigned}/${hotels.length}</div><div class="label">Assigned</div></div>`;
 
         let html = '<div class="panel"><h3>Hotel In-Charge (GM Replacement - Eid Period)</h3>';
-        html += '<p style="color:#94a3b8; font-size:0.8rem; margin-bottom:16px;">Select who is responsible for each hotel during the Eid holiday period as acting GM replacement.</p>';
+        html += '<p style="color:#94a3b8; font-size:0.8rem; margin-bottom:16px;">Enter who is responsible for each hotel during the Eid holiday period as acting GM replacement.</p>';
 
         hotels.forEach(h => {
           const saved = ic[h.key] || '';
@@ -435,14 +462,11 @@
             </div>
             <div class="ic-field">
               <label>IN-CHARGE:</label>
-              <select id="ic-${h.key}" onchange="saveHotelInCharge()">
-                <option value="">-- Select Person --</option>`;
-          workingEmployees.forEach(name => {
-            html += `<option value="${name}"${name === saved ? ' selected' : ''}>${name}</option>`;
-          });
-          html += `</select></div>`;
-          if (saved) html += `<div class="ic-current">Currently assigned: <strong>${saved}</strong></div>`;
-          html += '</div>';
+              <input type="text" id="ic-${h.key}" value="${saved}" placeholder="Enter name..."
+                style="flex:1; background:#1e293b; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;"
+                onchange="saveHotelInCharge()">
+            </div>
+          </div>`;
         });
 
         html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
