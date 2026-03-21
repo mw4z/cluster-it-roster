@@ -33,25 +33,32 @@ async function getDb() {
   }
 }
 
-// --- Daily Data storage (MongoDB with file fallback) ---
+// --- Daily Data storage (MongoDB with in-memory cache) ---
+const cache = {};
+
 async function loadDailyData(date) {
+  const empty = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+  if (cache[date]) return cache[date];
   const mongo = await getDb();
   if (mongo) {
     const doc = await mongo.collection('dailyData').findOne({ _id: date });
-    if (doc) { delete doc._id; return doc; }
-    return { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+    if (doc) { delete doc._id; cache[date] = doc; return doc; }
+    cache[date] = empty;
+    return empty;
   }
   // File fallback (local dev)
   try {
     if (fs.existsSync(DATA_FILE)) {
       const all = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
-      return all[date] || { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+      cache[date] = all[date] || empty;
+      return cache[date];
     }
   } catch (e) {}
-  return { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+  return empty;
 }
 
 async function saveDailyData(date, data) {
+  cache[date] = data;
   const mongo = await getDb();
   if (mongo) {
     await mongo.collection('dailyData').updateOne(
