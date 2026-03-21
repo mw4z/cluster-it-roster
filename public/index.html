@@ -53,6 +53,7 @@
     .emp-time { font-size: 0.75rem; color: #64748b; background: #1e293b; padding: 2px 8px; border-radius: 4px; }
     .called-in-badge { font-size: 0.65rem; background: #991b1b; color: #fca5a5; padding: 2px 6px; border-radius: 4px; }
     .employee-row.is-incharge { border-left: 3px solid #f59e0b; background: #1a1708; }
+    .employee-row.called-in.is-incharge { border-left: 3px solid #f59e0b; background: #1c1310; }
     .incharge-badge { font-size: 0.65rem; background: #854d0e; color: #fef3c7; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
 
     /* Panel (shared) */
@@ -340,8 +341,10 @@
         html += `<div class="shift-card ${cls}"><div class="shift-header">${shift.label}<span class="count">${shift.employees.length}</span></div><div class="shift-body">`;
         shift.employees.forEach(emp => {
           const isIC = icName && emp.name === icName;
-          const ci = emp.calledIn ? ' called-in' : (isIC ? ' is-incharge' : '');
-          const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : (isIC ? '<span class="incharge-badge">🔑 IN-CHARGE</span>' : '');
+          const ci = (emp.calledIn ? ' called-in' : '') + (isIC ? ' is-incharge' : '');
+          let badge = '';
+          if (isIC) badge += '<span class="incharge-badge">🔑 IN-CHARGE</span>';
+          if (emp.calledIn) badge += '<span class="called-in-badge">CALLED IN</span>';
           const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
           html += `<div class="employee-row${ci}"><span class="emp-name">${emp.name}</span>${time}${badge}</div>`;
         });
