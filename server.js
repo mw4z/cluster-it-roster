@@ -75,6 +75,13 @@ async function saveDailyData(date, data) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(all, null, 2), 'utf8');
 }
 
+function formatDate(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const dd = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
+}
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -107,28 +114,35 @@ app.get('/api/roster', (req, res) => {
     const dateCol = findDateColumn(firstRow, dt);
     const { shiftMap, shiftOrder, daysEn, employeeStartRow, employeeEndRow } = config;
 
+    const currentYear = nowInRiyadh().getFullYear();
     const availableDates = [];
     for (let i = 2; i < firstRow.length; i++) {
       const cellDate = parseCellDate(firstRow[i], dt.getFullYear());
       if (cellDate && !isNaN(cellDate)) {
-        const y = cellDate.getUTCFullYear();
         const m = String(cellDate.getUTCMonth() + 1).padStart(2, '0');
         const d = String(cellDate.getUTCDate()).padStart(2, '0');
-        availableDates.push(`${y}-${m}-${d}`);
+        availableDates.push(`${currentYear}-${m}-${d}`);
       }
     }
 
     if (dateCol === -1) {
+      const nfDate = new Date(Date.UTC(currentYear, dt.getUTCMonth(), dt.getUTCDate()));
       return res.json({
-        date: dt.toISOString().split('T')[0],
-        dayName: daysEn[dt.getDay()],
-        dateFormatted: dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+        date: formatDate(nfDate),
+        dayName: daysEn[nfDate.getUTCDay()],
+        dateFormatted: nfDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
         isEid: false, shifts: [], availableDates, notFound: true
       });
     }
 
+    // Get actual date from Excel column
+    const actualDate = parseCellDate(firstRow[dateCol], dt.getFullYear());
     const headerCell = (firstRow[dateCol] || '').toString();
     const isEid = /eid/i.test(headerCell);
+
+    // Use current year for day name display (Excel may have different year)
+    const now = nowInRiyadh();
+    const displayDate = actualDate ? new Date(Date.UTC(now.getFullYear(), actualDate.getUTCMonth(), actualDate.getUTCDate())) : dt;
 
     const shifts = {};
     for (let i = employeeStartRow; i <= Math.min(employeeEndRow, rawData.length - 1); i++) {
@@ -149,9 +163,9 @@ app.get('/api/roster', (req, res) => {
     }
 
     res.json({
-      date: dt.toISOString().split('T')[0],
-      dayName: daysEn[dt.getDay()],
-      dateFormatted: dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      date: formatDate(displayDate),
+      dayName: daysEn[displayDate.getUTCDay()],
+      dateFormatted: displayDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
       isEid, shifts: sortedShifts, availableDates
     });
   } catch (err) {
