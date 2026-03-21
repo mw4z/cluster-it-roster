@@ -21,8 +21,8 @@
     .date-display { font-size: 1.1rem; font-weight: 600; color: #f1f5f9; min-width: 200px; text-align: center; }
     .date-display .day-name { color: #60a5fa; font-size: 0.85rem; }
 
-    .tabs { display: flex; justify-content: center; gap: 8px; padding: 12px 20px; background: #1e293b; border-bottom: 1px solid #334155; overflow-x: auto; }
-    .tab { padding: 8px 18px; border-radius: 20px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.85rem; white-space: nowrap; transition: all 0.2s; }
+    .tabs { display: flex; justify-content: center; gap: 6px; padding: 12px 16px; background: #1e293b; border-bottom: 1px solid #334155; overflow-x: auto; }
+    .tab { padding: 8px 14px; border-radius: 20px; border: 1px solid #475569; background: transparent; color: #94a3b8; cursor: pointer; font-size: 0.82rem; white-space: nowrap; transition: all 0.2s; }
     .tab:hover { color: #e2e8f0; border-color: #60a5fa; }
     .tab.active { background: #2563eb; color: white; border-color: #2563eb; }
 
@@ -33,30 +33,10 @@
 
     .content { max-width: 750px; margin: 0 auto; padding: 16px; }
 
-    /* Occupancy Section */
-    .occupancy-section { background: #1e293b; border-radius: 12px; padding: 16px; margin-bottom: 16px; border: 1px solid #334155; }
-    .occupancy-section h3 { color: #60a5fa; margin-bottom: 12px; font-size: 0.95rem; }
-    .occupancy-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-    .occ-item { background: #0f172a; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; border: 1px solid #334155; }
-    .occ-item .hotel-name { flex: 1; font-size: 0.8rem; color: #94a3b8; }
-    .occ-item input {
-      width: 65px; background: #1e293b; border: 1px solid #475569; color: #e2e8f0;
-      padding: 5px 8px; border-radius: 6px; font-size: 0.9rem; text-align: center;
-    }
-    .occ-item input:focus { outline: none; border-color: #60a5fa; }
-    .occ-item .pct { color: #64748b; font-size: 0.8rem; }
-    .save-btn {
-      margin-top: 10px; width: 100%; padding: 8px; background: #2563eb; color: white;
-      border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; transition: all 0.2s;
-    }
-    .save-btn:hover { background: #1d4ed8; }
-    .save-msg { text-align: center; color: #22c55e; font-size: 0.75rem; margin-top: 6px; display: none; }
-
     /* Shift Card */
     .shift-card { background: #1e293b; border-radius: 12px; margin-bottom: 12px; overflow: hidden; border: 1px solid #334155; }
     .shift-header { padding: 12px 18px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
     .shift-header .count { margin-left: auto; background: #334155; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; color: #94a3b8; }
-
     .shift-morning .shift-header { border-left: 4px solid #06b6d4; }
     .shift-between .shift-header { border-left: 4px solid #f59e0b; }
     .shift-evening .shift-header { border-left: 4px solid #a855f7; }
@@ -65,34 +45,57 @@
     .shift-leave .shift-header { border-left: 4px solid #22c55e; }
     .shift-task .shift-header { border-left: 4px solid #ec4899; }
     .shift-holiday .shift-header { border-left: 4px solid #eab308; }
-
     .shift-body { padding: 0 18px 12px; }
-
-    /* In-Charge Selector */
-    .incharge-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; margin-bottom: 4px; border-bottom: 1px solid #1e293b; }
-    .incharge-label { font-size: 0.75rem; color: #f59e0b; font-weight: 600; }
-    .incharge-select {
-      flex: 1; background: #0f172a; border: 1px solid #475569; color: #e2e8f0;
-      padding: 5px 8px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;
-    }
-    .incharge-select:focus { outline: none; border-color: #f59e0b; }
-    .incharge-badge {
-      font-size: 0.6rem; background: #854d0e; color: #fde68a; padding: 1px 6px;
-      border-radius: 4px; font-weight: 600;
-    }
 
     .employee-row { padding: 8px 12px; margin: 4px 0; background: #0f172a; border-radius: 8px; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; }
     .employee-row.called-in { border-left: 3px solid #ef4444; background: #1c1117; }
-    .employee-row.is-incharge { border-left: 3px solid #f59e0b; background: #1a1708; }
     .emp-name { flex: 1; }
     .emp-time { font-size: 0.75rem; color: #64748b; background: #1e293b; padding: 2px 8px; border-radius: 4px; }
     .called-in-badge { font-size: 0.65rem; background: #991b1b; color: #fca5a5; padding: 2px 6px; border-radius: 4px; }
 
-    .office-panel { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; }
-    .office-panel h3 { color: #60a5fa; margin-bottom: 12px; font-size: 1rem; }
+    /* Panel (shared) */
+    .panel { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; }
+    .panel h3 { color: #60a5fa; margin-bottom: 14px; font-size: 1rem; }
     .employee-chips { display: flex; flex-wrap: wrap; gap: 8px; }
     .emp-chip { background: #0f172a; padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; border: 1px solid #334155; display: flex; flex-direction: column; gap: 2px; }
     .emp-chip .chip-time { font-size: 0.7rem; color: #64748b; }
+
+    /* Occupancy Tab */
+    .occ-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .occ-card { background: #0f172a; border-radius: 10px; padding: 16px; border: 1px solid #334155; text-align: center; }
+    .occ-card .hotel-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .occ-card .hotel-label { font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px; }
+    .occ-card input {
+      width: 80px; background: #1e293b; border: 1px solid #475569; color: #e2e8f0;
+      padding: 8px; border-radius: 8px; font-size: 1.2rem; text-align: center; font-weight: 700;
+    }
+    .occ-card input:focus { outline: none; border-color: #60a5fa; }
+    .occ-card .pct { color: #64748b; font-size: 1rem; margin-left: 4px; }
+    .occ-bar { margin-top: 10px; background: #1e293b; border-radius: 6px; height: 8px; overflow: hidden; }
+    .occ-bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
+
+    .save-btn {
+      margin-top: 14px; width: 100%; padding: 10px; background: #2563eb; color: white;
+      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
+    }
+    .save-btn:hover { background: #1d4ed8; }
+    .save-msg { text-align: center; color: #22c55e; font-size: 0.8rem; margin-top: 8px; display: none; }
+
+    /* In-Charge Tab */
+    .ic-card { background: #0f172a; border-radius: 10px; padding: 16px; margin-bottom: 12px; border: 1px solid #334155; }
+    .ic-card .ic-hotel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .ic-card .ic-hotel-icon { font-size: 1.5rem; }
+    .ic-card .ic-hotel-name { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
+    .ic-card .ic-hotel-sub { font-size: 0.7rem; color: #64748b; }
+    .ic-field { display: flex; align-items: center; gap: 10px; }
+    .ic-field label { font-size: 0.8rem; color: #f59e0b; font-weight: 600; white-space: nowrap; }
+    .ic-field select {
+      flex: 1; background: #1e293b; border: 1px solid #475569; color: #e2e8f0;
+      padding: 8px 10px; border-radius: 8px; font-size: 0.85rem; cursor: pointer;
+    }
+    .ic-field select:focus { outline: none; border-color: #f59e0b; }
+    .ic-current { margin-top: 8px; font-size: 0.8rem; color: #94a3b8; }
+    .ic-current strong { color: #f59e0b; }
 
     .loading { text-align: center; padding: 60px 20px; color: #64748b; }
     .spinner { width: 36px; height: 36px; border: 3px solid #334155; border-top-color: #60a5fa; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
@@ -105,12 +108,14 @@
 
     @media (max-width: 600px) {
       .header h1 { font-size: 1.1rem; }
-      .date-nav button { padding: 6px 12px; font-size: 0.85rem; }
-      .date-display { font-size: 0.95rem; min-width: 150px; }
-      .stats-bar { gap: 10px; }
+      .date-nav button { padding: 6px 10px; font-size: 0.85rem; }
+      .date-display { font-size: 0.95rem; min-width: 140px; }
+      .stats-bar { gap: 8px; }
       .stat { padding: 4px 10px; }
       .stat .value { font-size: 1.1rem; }
-      .occupancy-grid { grid-template-columns: 1fr; }
+      .occ-grid { grid-template-columns: 1fr; }
+      .tabs { gap: 4px; padding: 10px 10px; }
+      .tab { padding: 6px 10px; font-size: 0.78rem; }
     }
   </style>
 </head>
@@ -132,13 +137,15 @@
 
   <div class="tabs">
     <button class="tab active" data-view="roster" onclick="switchView('roster')">Roster</button>
-    <button class="tab" data-view="office" onclick="switchView('office')">In Office Now</button>
+    <button class="tab" data-view="office" onclick="switchView('office')">In Office</button>
+    <button class="tab" data-view="occupancy" onclick="switchView('occupancy')">Occupancy</button>
+    <button class="tab" data-view="incharge" onclick="switchView('incharge')">In-Charge</button>
     <button class="tab" data-view="salary" onclick="switchView('salary')">Salary</button>
   </div>
 
   <div class="stats-bar" id="statsBar"></div>
   <div class="content" id="content">
-    <div class="loading"><div class="spinner"></div>Loading roster...</div>
+    <div class="loading"><div class="spinner"></div>Loading...</div>
   </div>
   <div class="refresh-info"><span class="live-dot"></span> Auto-refreshes every 5 minutes</div>
 
@@ -148,16 +155,17 @@
     let currentIndex = -1;
     let currentView = 'roster';
     let currentRosterData = null;
-    let currentDailyData = { occupancy: {}, inCharge: {} };
+    let currentDailyData = { occupancy: {}, hotelInCharge: {} };
 
-    const hotels = ['Fairmont', 'Raffles', 'Swiss Makkah', 'Swiss Al Maqam'];
-    const workingShiftLabels = ['Morning', 'Between', 'Evening', 'Night'];
+    const hotels = [
+      { key: 'Fairmont', name: 'Fairmont Hotel', icon: '🏨' },
+      { key: 'Raffles', name: 'Raffles Hotel', icon: '🏰' },
+      { key: 'SwissMakkah', name: 'Swiss Makkah Hotel', icon: '🕋' },
+      { key: 'SwissAlMaqam', name: 'Swiss Al Maqam Hotel', icon: '🌙' }
+    ];
 
     function formatDateParam(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${dd}`;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
     function switchView(view) {
@@ -166,6 +174,8 @@
       document.querySelector(`[data-view="${view}"]`).classList.add('active');
       if (view === 'roster') loadRoster();
       else if (view === 'office') loadOfficeNow();
+      else if (view === 'occupancy') loadOccupancy();
+      else if (view === 'incharge') loadInCharge();
       else if (view === 'salary') loadSalary();
     }
 
@@ -175,15 +185,15 @@
         if (newIdx >= 0 && newIdx < availableDates.length) {
           currentIndex = newIdx;
           currentDate = new Date(availableDates[newIdx] + 'T12:00:00');
-          loadRoster();
+          switchView(currentView);
         }
       } else {
         currentDate.setDate(currentDate.getDate() + delta);
-        loadRoster();
+        switchView(currentView);
       }
     }
 
-    function goToday() { currentDate = new Date(); loadRoster(); }
+    function goToday() { currentDate = new Date(); switchView(currentView); }
 
     function getShiftClass(label) {
       if (label.includes('Morning')) return 'shift-morning';
@@ -197,67 +207,62 @@
       return 'shift-off';
     }
 
-    function isWorkingShift(label) {
-      return workingShiftLabels.some(w => label.includes(w));
-    }
-
     async function loadDailyData(dateStr) {
       try {
         const res = await fetch(`/api/daily-data?date=${dateStr}`);
         currentDailyData = await res.json();
+        if (!currentDailyData.occupancy) currentDailyData.occupancy = {};
+        if (!currentDailyData.hotelInCharge) currentDailyData.hotelInCharge = {};
       } catch (e) {
-        currentDailyData = { occupancy: {}, inCharge: {} };
+        currentDailyData = { occupancy: {}, hotelInCharge: {} };
       }
     }
 
-    async function saveDailyData() {
+    async function saveField(field, data) {
       const dateStr = currentRosterData?.date;
       if (!dateStr) return;
-
-      // Collect occupancy
-      const occupancy = {};
-      hotels.forEach(h => {
-        const input = document.getElementById('occ-' + h.replace(/\s/g, ''));
-        if (input && input.value) occupancy[h] = parseInt(input.value) || 0;
-      });
-
-      // Collect in-charge
-      const inCharge = {};
-      document.querySelectorAll('.incharge-select').forEach(sel => {
-        if (sel.value) inCharge[sel.dataset.shift] = sel.value;
-      });
-
-      currentDailyData = { occupancy, inCharge };
-
+      currentDailyData[field] = data;
       try {
         await fetch('/api/daily-data', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: dateStr, occupancy, inCharge })
+          body: JSON.stringify({ date: dateStr, ...currentDailyData })
         });
         const msg = document.getElementById('saveMsg');
         if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000); }
-      } catch (e) {
-        alert('Failed to save');
-      }
+      } catch (e) { console.error('Save failed:', e); }
     }
 
-    async function loadRoster() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      const eidBanner = document.getElementById('eidBanner');
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
-
-      try {
-        const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
-        if (!res.ok) {
-          const err = await res.json();
-          content.innerHTML = `<div class="error-msg">${err.error}</div>`;
-          statsBar.innerHTML = '';
-          eidBanner.style.display = 'none';
-          return;
+    function saveOccupancy() {
+      const occ = {};
+      hotels.forEach(h => {
+        const input = document.getElementById('occ-' + h.key);
+        if (input && input.value) occ[h.key] = parseInt(input.value) || 0;
+      });
+      // Update bar fills
+      hotels.forEach(h => {
+        const val = occ[h.key] || 0;
+        const fill = document.getElementById('occ-bar-' + h.key);
+        if (fill) {
+          fill.style.width = val + '%';
+          fill.style.background = val > 85 ? '#ef4444' : val > 60 ? '#f59e0b' : '#22c55e';
         }
+      });
+      saveField('occupancy', occ);
+    }
 
+    function saveHotelInCharge() {
+      const ic = {};
+      hotels.forEach(h => {
+        const sel = document.getElementById('ic-' + h.key);
+        if (sel && sel.value) ic[h.key] = sel.value;
+      });
+      saveField('hotelInCharge', ic);
+    }
+
+    async function ensureRosterLoaded() {
+      if (!currentRosterData || currentRosterData.notFound) {
+        const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
         const data = await res.json();
         currentRosterData = data;
         availableDates = data.availableDates || [];
@@ -268,136 +273,184 @@
           const target = future || availableDates[availableDates.length - 1];
           currentIndex = availableDates.indexOf(target);
           currentDate = new Date(target + 'T12:00:00');
-          loadRoster();
-          return;
+          const res2 = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
+          currentRosterData = await res2.json();
+          availableDates = currentRosterData.availableDates || [];
         }
 
         const curMD = formatDateParam(currentDate).slice(5);
         currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
         if (currentIndex === -1) currentIndex = availableDates.indexOf(formatDateParam(currentDate));
+      }
+      await loadDailyData(currentRosterData.date);
+    }
 
-        document.getElementById('dayName').textContent = data.dayName;
-        document.getElementById('dateText').textContent = data.dateFormatted;
-        eidBanner.style.display = data.isEid ? 'block' : 'none';
+    function updateNav() {
+      if (currentRosterData) {
+        document.getElementById('dayName').textContent = currentRosterData.dayName;
+        document.getElementById('dateText').textContent = currentRosterData.dateFormatted;
+        document.getElementById('eidBanner').style.display = currentRosterData.isEid ? 'block' : 'none';
+      }
+      document.getElementById('prevBtn').disabled = currentIndex <= 0;
+      document.getElementById('nextBtn').disabled = currentIndex >= availableDates.length - 1;
+    }
 
-        // Load saved daily data
-        await loadDailyData(data.date);
+    // ==================== ROSTER ====================
+    async function loadRoster() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
+      currentRosterData = null;
+
+      try {
+        await ensureRosterLoaded();
+        updateNav();
+        const data = currentRosterData;
 
         let totalWorking = 0, totalOff = 0;
         data.shifts.forEach(s => {
-          if (isWorkingShift(s.label) || s.label.includes('Task') || s.label.includes('Training')) {
-            totalWorking += s.employees.length;
-          } else {
-            totalOff += s.employees.length;
-          }
+          const lbl = s.label;
+          if (['Morning','Between','Evening','Night','Task','Training'].some(w => lbl.includes(w))) totalWorking += s.employees.length;
+          else totalOff += s.employees.length;
         });
 
         statsBar.innerHTML = `
           <div class="stat"><div class="value">${totalWorking}</div><div class="label">Working</div></div>
           <div class="stat"><div class="value">${totalOff}</div><div class="label">Off / Leave</div></div>
-          <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>
-        `;
+          <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>`;
 
-        document.getElementById('prevBtn').disabled = currentIndex <= 0;
-        document.getElementById('nextBtn').disabled = currentIndex >= availableDates.length - 1;
+        if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
 
-        // Build HTML
         let html = '';
-
-        // --- Occupancy Section ---
-        html += `<div class="occupancy-section">
-          <h3>Hotel Occupancy</h3>
-          <div class="occupancy-grid">`;
-        hotels.forEach(h => {
-          const key = h.replace(/\s/g, '');
-          const val = currentDailyData.occupancy?.[h] || '';
-          html += `<div class="occ-item">
-            <span class="hotel-name">${h}</span>
-            <input type="number" id="occ-${key}" min="0" max="100" value="${val}" placeholder="--">
-            <span class="pct">%</span>
-          </div>`;
-        });
-        html += `</div>
-          <button class="save-btn" onclick="saveDailyData()">Save</button>
-          <div class="save-msg" id="saveMsg">Saved successfully!</div>
-        </div>`;
-
-        // --- Shift Cards ---
-        if (data.shifts.length === 0) {
-          html += '<div class="empty-msg">No roster data found for this date.</div>';
-        } else {
-          data.shifts.forEach(shift => {
-            const cls = getShiftClass(shift.label);
-            const showInCharge = isWorkingShift(shift.label);
-
-            html += `<div class="shift-card ${cls}"><div class="shift-header">
-                ${shift.label}<span class="count">${shift.employees.length}</span>
-              </div><div class="shift-body">`;
-
-            // In-Charge selector (only for working shifts)
-            if (showInCharge) {
-              const savedIC = currentDailyData.inCharge?.[shift.label] || '';
-              html += `<div class="incharge-row">
-                <span class="incharge-label">IN-CHARGE:</span>
-                <select class="incharge-select" data-shift="${shift.label}" onchange="saveDailyData()">
-                  <option value="">-- Select --</option>`;
-              shift.employees.forEach(emp => {
-                const selected = emp.name === savedIC ? ' selected' : '';
-                html += `<option value="${emp.name}"${selected}>${emp.name}</option>`;
-              });
-              html += `</select></div>`;
-            }
-
-            shift.employees.forEach(emp => {
-              const isIC = currentDailyData.inCharge?.[shift.label] === emp.name;
-              const calledInClass = emp.calledIn ? ' called-in' : '';
-              const icClass = isIC ? ' is-incharge' : '';
-              const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : '';
-              const icBadge = isIC ? '<span class="incharge-badge">IN-CHARGE</span>' : '';
-              const timeTag = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
-              html += `<div class="employee-row${calledInClass}${icClass}">
-                  <span class="emp-name">${emp.name}</span>${timeTag}${icBadge}${badge}
-                </div>`;
-            });
-
-            html += '</div></div>';
+        data.shifts.forEach(shift => {
+          const cls = getShiftClass(shift.label);
+          html += `<div class="shift-card ${cls}"><div class="shift-header">${shift.label}<span class="count">${shift.employees.length}</span></div><div class="shift-body">`;
+          shift.employees.forEach(emp => {
+            const ci = emp.calledIn ? ' called-in' : '';
+            const badge = emp.calledIn ? '<span class="called-in-badge">CALLED IN</span>' : '';
+            const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
+            html += `<div class="employee-row${ci}"><span class="emp-name">${emp.name}</span>${time}${badge}</div>`;
           });
-        }
-
+          html += '</div></div>';
+        });
         content.innerHTML = html;
-      } catch (err) {
-        content.innerHTML = `<div class="error-msg">Connection error: ${err.message}</div>`;
-      }
+      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
 
+    // ==================== IN OFFICE ====================
     async function loadOfficeNow() {
       const content = document.getElementById('content');
       const statsBar = document.getElementById('statsBar');
       document.getElementById('eidBanner').style.display = 'none';
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Checking who\'s in office...</div>';
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Checking...</div>';
       statsBar.innerHTML = '';
       try {
         const res = await fetch('/api/office-now');
         const data = await res.json();
         statsBar.innerHTML = `
-          <div class="stat"><div class="value">${data.employees ? data.employees.length : 0}</div><div class="label">In Office</div></div>
-          <div class="stat"><div class="value">${data.time || '--:--'}</div><div class="label">Current Time</div></div>
-          <div class="stat"><div class="value">${(data.activeShifts || []).join(', ') || '-'}</div><div class="label">Active Shifts</div></div>
-        `;
-        if (!data.employees || data.employees.length === 0) {
-          content.innerHTML = '<div class="empty-msg">No one is currently in the office.</div>';
-          return;
-        }
-        let html = '<div class="office-panel"><h3>Currently in Office</h3><div class="employee-chips">';
+          <div class="stat"><div class="value">${data.employees?.length || 0}</div><div class="label">In Office</div></div>
+          <div class="stat"><div class="value">${data.time || '--:--'}</div><div class="label">Time</div></div>
+          <div class="stat"><div class="value">${(data.activeShifts||[]).join(', ')||'-'}</div><div class="label">Active</div></div>`;
+        if (!data.employees?.length) { content.innerHTML = '<div class="empty-msg">No one is currently in the office.</div>'; return; }
+        let html = '<div class="panel"><h3>Currently in Office</h3><div class="employee-chips">';
         data.employees.forEach(emp => {
-          const time = emp.rawTime ? `<span class="chip-time">${emp.rawTime}</span>` : '';
-          html += `<div class="emp-chip">${emp.name}${time}</div>`;
+          html += `<div class="emp-chip">${emp.name}${emp.rawTime ? `<span class="chip-time">${emp.rawTime}</span>` : ''}</div>`;
         });
-        html += '</div></div>';
+        content.innerHTML = html + '</div></div>';
+      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
+    }
+
+    // ==================== OCCUPANCY ====================
+    async function loadOccupancy() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+      try {
+        await ensureRosterLoaded();
+        updateNav();
+
+        const occ = currentDailyData.occupancy || {};
+        const vals = hotels.map(h => occ[h.key] || 0);
+        const avg = vals.some(v => v > 0) ? Math.round(vals.filter(v => v > 0).reduce((a, b) => a + b, 0) / vals.filter(v => v > 0).length) : 0;
+
+        statsBar.innerHTML = `<div class="stat"><div class="value">${avg}%</div><div class="label">Avg Occupancy</div></div>`;
+
+        let html = '<div class="panel"><h3>Hotel Occupancy</h3><div class="occ-grid">';
+        hotels.forEach(h => {
+          const val = occ[h.key] || '';
+          const numVal = parseInt(val) || 0;
+          const barColor = numVal > 85 ? '#ef4444' : numVal > 60 ? '#f59e0b' : '#22c55e';
+          html += `<div class="occ-card">
+            <div class="hotel-icon">${h.icon}</div>
+            <div class="hotel-label">${h.name}</div>
+            <input type="number" id="occ-${h.key}" min="0" max="100" value="${val}" placeholder="--" oninput="saveOccupancy()">
+            <span class="pct">%</span>
+            <div class="occ-bar"><div class="occ-bar-fill" id="occ-bar-${h.key}" style="width:${numVal}%; background:${barColor};"></div></div>
+          </div>`;
+        });
+        html += '</div>';
+        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
         content.innerHTML = html;
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
 
+    // ==================== IN-CHARGE (Hotel GM Replacement) ====================
+    async function loadInCharge() {
+      const content = document.getElementById('content');
+      const statsBar = document.getElementById('statsBar');
+      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+      try {
+        await ensureRosterLoaded();
+        updateNav();
+        const data = currentRosterData;
+
+        // Get all working employees for this date
+        const workingEmployees = [];
+        data.shifts.forEach(s => {
+          if (['Morning','Between','Evening','Night'].some(w => s.label.includes(w))) {
+            s.employees.forEach(emp => {
+              if (!workingEmployees.includes(emp.name)) workingEmployees.push(emp.name);
+            });
+          }
+        });
+
+        const ic = currentDailyData.hotelInCharge || {};
+        const assigned = Object.values(ic).filter(v => v).length;
+
+        statsBar.innerHTML = `
+          <div class="stat"><div class="value">${assigned}/${hotels.length}</div><div class="label">Assigned</div></div>
+          <div class="stat"><div class="value">${workingEmployees.length}</div><div class="label">Available</div></div>`;
+
+        let html = '<div class="panel"><h3>Hotel In-Charge (GM Replacement - Eid Period)</h3>';
+        html += '<p style="color:#94a3b8; font-size:0.8rem; margin-bottom:16px;">Select who is responsible for each hotel during the Eid holiday period as acting GM replacement.</p>';
+
+        hotels.forEach(h => {
+          const saved = ic[h.key] || '';
+          html += `<div class="ic-card">
+            <div class="ic-hotel-header">
+              <span class="ic-hotel-icon">${h.icon}</span>
+              <div><div class="ic-hotel-name">${h.name}</div><div class="ic-hotel-sub">Acting GM / In-Charge</div></div>
+            </div>
+            <div class="ic-field">
+              <label>IN-CHARGE:</label>
+              <select id="ic-${h.key}" onchange="saveHotelInCharge()">
+                <option value="">-- Select Person --</option>`;
+          workingEmployees.forEach(name => {
+            html += `<option value="${name}"${name === saved ? ' selected' : ''}>${name}</option>`;
+          });
+          html += `</select></div>`;
+          if (saved) html += `<div class="ic-current">Currently assigned: <strong>${saved}</strong></div>`;
+          html += '</div>';
+        });
+
+        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
+        content.innerHTML = html;
+      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
+    }
+
+    // ==================== SALARY ====================
     async function loadSalary() {
       const content = document.getElementById('content');
       const statsBar = document.getElementById('statsBar');
@@ -408,11 +461,9 @@
         const data = await res.json();
         statsBar.innerHTML = `
           <div class="stat"><div class="value">${data.daysLeft}</div><div class="label">Days Left</div></div>
-          <div class="stat"><div class="value">${data.salaryDate}</div><div class="label">Salary Date</div></div>
-        `;
+          <div class="stat"><div class="value">${data.salaryDate}</div><div class="label">Salary Date</div></div>`;
         const progress = Math.max(0, Math.min(100, ((30 - data.daysLeft) / 30) * 100));
-        content.innerHTML = `
-          <div class="office-panel" style="text-align:center;">
+        content.innerHTML = `<div class="panel" style="text-align:center;">
             <h3>Salary Countdown</h3>
             <div style="font-size:3rem; font-weight:700; color:#60a5fa; margin:20px 0;">${data.daysLeft} days</div>
             <div style="background:#0f172a; border-radius:10px; height:20px; overflow:hidden; margin:16px 0;">
@@ -424,11 +475,7 @@
     }
 
     loadRoster();
-    setInterval(() => {
-      if (currentView === 'roster') loadRoster();
-      else if (currentView === 'office') loadOfficeNow();
-      else if (currentView === 'salary') loadSalary();
-    }, 5 * 60 * 1000);
+    setInterval(() => switchView(currentView), 5 * 60 * 1000);
   </script>
 </body>
 </html>

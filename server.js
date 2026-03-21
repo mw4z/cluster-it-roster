@@ -30,15 +30,15 @@ app.get('/api/daily-data', (req, res) => {
   const { date } = req.query;
   if (!date) return res.status(400).json({ error: 'Date required' });
   const all = loadData();
-  res.json(all[date] || { occupancy: {}, inCharge: {} });
+  res.json(all[date] || { occupancy: {}, hotelInCharge: {} });
 });
 
 // POST save daily data for a date
 app.post('/api/daily-data', (req, res) => {
-  const { date, occupancy, inCharge } = req.body;
+  const { date, occupancy, hotelInCharge } = req.body;
   if (!date) return res.status(400).json({ error: 'Date required' });
   const all = loadData();
-  all[date] = { occupancy: occupancy || {}, inCharge: inCharge || {} };
+  all[date] = { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {} };
   saveData(all);
   res.json({ success: true });
 });
