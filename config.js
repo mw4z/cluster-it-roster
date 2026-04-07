@@ -101,7 +101,7 @@ module.exports = {
   ],
 
   // Salary day (27th of every month)
-  salaryDay: 27,
+  salaryDay: 26,
 
   // Employee data rows in Excel (first employee row, last employee row)
   employeeStartRow: 2,
