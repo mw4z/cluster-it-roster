@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
-const axios = require('axios');
 const config = require('./config');
 
 const { daysEn, shiftMap, shiftOrder, weatherApiKey, salaryDay, employeeStartRow, employeeEndRow } = config;
@@ -118,9 +117,9 @@ async function getTodayRosterMessage(includeExtras = true, isTomorrow = false) {
   if (includeExtras && weatherApiKey) {
     try {
       const url = `https://api.openweathermap.org/data/2.5/weather?q=Mecca,SA&units=metric&lang=en&appid=${weatherApiKey}`;
-      const resp = await axios.get(url, { timeout: 5000 });
-      if (resp.status === 200 && resp.data?.weather && resp.data?.main) {
-        const w = resp.data;
+      const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+      if (resp.ok) {
+        const w = await resp.json();
         message += `📍Weather: ${w.weather[0].description}, Currently ${Math.round(w.main.temp)}°C 🌡️\n\n`;
       }
     } catch (e) {
