@@ -42,9 +42,9 @@ app.get('/api/daily-data', (req, res) => {
 
 // POST save daily data for a date
 app.post('/api/daily-data', (req, res) => {
-  const { date, occupancy, hotelInCharge, inCharge } = req.body;
+  const { date, occupancy, inCharge, shiftOverrides } = req.body;
   if (!date) return res.status(400).json({ error: 'Date required' });
-  saveDailyData(date, { occupancy: occupancy || {}, hotelInCharge: hotelInCharge || {}, inCharge: inCharge || {} });
+  saveDailyData(date, { occupancy: occupancy || {}, inCharge: inCharge || {}, shiftOverrides: shiftOverrides || {} });
   res.json({ success: true });
 });
 
@@ -60,7 +60,7 @@ app.get('/api/roster', (req, res) => {
 
     const firstRow = rawData[0];
     const dateCol = findDateColumn(firstRow, dt);
-    const { shiftMap, shiftOrder, daysEn, employeeStartRow, employeeEndRow } = config;
+    const { shiftMap, shiftOrder, daysEn, employeeStartRow, employeeEndRow, inChargePriority } = config;
 
     const currentYear = nowInRiyadh().getFullYear();
     const availableDates = [];
@@ -110,11 +110,13 @@ app.get('/api/roster', (req, res) => {
       if (shifts[label]) sortedShifts.push({ label, employees: shifts[label] });
     }
 
+    const shiftCodes = Object.entries(shiftMap).map(([code, label]) => ({ code, label }));
+
     res.json({
       date: formatDate(displayDate),
       dayName: daysEn[displayDate.getUTCDay()],
       dateFormatted: displayDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }),
-      isEid, shifts: sortedShifts, availableDates
+      isEid, shifts: sortedShifts, availableDates, shiftCodes, inChargePriority
     });
   } catch (err) {
     console.error('API error:', err);

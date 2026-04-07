@@ -82,6 +82,24 @@ module.exports = {
     "🏳️ National Holiday", "🎉 Public Holiday", "🏖️ Annual Leave"
   ],
 
+  // In-charge priority (highest first)
+  inChargePriority: [
+    'Salem Seif',
+    'Saad Marwan',
+    'Mostafa Nabil',
+    'Hassan, Islam',
+    'Alamoudi, Abdulrhman',
+    'Moayad Yar',
+    'ziyad al zahrani',
+    'Mohammed Alkhattabi',
+    'Suhaib  Midrad',
+    'Hatem Asim',
+    'Yasser Mattiri',
+    'Meshari Alharithi',
+    'Abdulmajeed Othman',
+    'Haitham Sendi'
+  ],
+
   // Salary day (27th of every month)
   salaryDay: 27,
 

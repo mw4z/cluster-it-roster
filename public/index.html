@@ -55,6 +55,12 @@
     .employee-row.is-incharge { border-left: 3px solid #f59e0b; background: #1a1708; }
     .employee-row.called-in.is-incharge { border-left: 3px solid #f59e0b; background: #1c1310; }
     .incharge-badge { font-size: 0.65rem; background: #854d0e; color: #fef3c7; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+    .shift-edit-btn { font-size: 0.65rem; background: #334155; color: #94a3b8; padding: 2px 8px; border-radius: 4px; cursor: pointer; border: 1px solid #475569; transition: all 0.2s; }
+    .shift-edit-btn:hover { background: #475569; color: #e2e8f0; }
+    .shift-select { background: #1e293b; border: 1px solid #60a5fa; color: #e2e8f0; padding: 4px 6px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
+    .shift-select:focus { outline: none; }
+    .shift-modified { background: #172554 !important; border: 1px dashed #3b82f6 !important; }
+    .modified-badge { font-size: 0.6rem; background: #1e3a5f; color: #60a5fa; padding: 2px 6px; border-radius: 4px; }
 
     /* Panel (shared) */
     .panel { background: #1e293b; border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid #334155; }
@@ -84,19 +90,7 @@
     .save-btn:hover { background: #1d4ed8; }
     .save-msg { text-align: center; color: #22c55e; font-size: 0.8rem; margin-top: 8px; display: none; }
 
-    /* In-Charge Tab */
-    .ic-card { background: #0f172a; border-radius: 10px; padding: 16px; margin-bottom: 12px; border: 1px solid #334155; }
-    .ic-card .ic-hotel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-    .ic-card .ic-hotel-icon { font-size: 1.5rem; }
-    .ic-card .ic-hotel-name { font-size: 0.95rem; font-weight: 700; color: #e2e8f0; }
-    .ic-card .ic-hotel-sub { font-size: 0.7rem; color: #64748b; }
-    .ic-field { display: flex; align-items: center; gap: 10px; }
-    .ic-field label { font-size: 0.8rem; color: #f59e0b; font-weight: 600; white-space: nowrap; }
-    .ic-field input, .ic-field select {
-      flex: 1; background: #1e293b; border: 1px solid #475569; color: #e2e8f0;
-      padding: 8px 10px; border-radius: 8px; font-size: 0.85rem;
-    }
-    .ic-field input:focus, .ic-field select:focus { outline: none; border-color: #f59e0b; }
+
     .ic-current { margin-top: 8px; font-size: 0.8rem; color: #94a3b8; }
     .ic-current strong { color: #f59e0b; }
 
@@ -142,7 +136,7 @@
     <button class="tab active" data-view="roster" onclick="switchView('roster')">Roster</button>
     <button class="tab" data-view="office" onclick="switchView('office')">In Office</button>
     <button class="tab" data-view="occupancy" onclick="switchView('occupancy')">Occupancy</button>
-    <button class="tab" data-view="incharge" onclick="switchView('incharge')">Hotel In-Charge</button>
+
     <button class="tab" data-view="salary" onclick="switchView('salary')">Salary</button>
   </div>
 
@@ -158,7 +152,7 @@
     let currentIndex = -1;
     let currentView = 'roster';
     let currentRosterData = null;
-    let currentDailyData = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+    let currentDailyData = { occupancy: {}, inCharge: {}, shiftOverrides: {} };
 
     const hotels = [
       { key: 'Fairmont', name: 'Fairmont Hotel', icon: '🏨' },
@@ -178,7 +172,7 @@
       if (view === 'roster') loadRoster();
       else if (view === 'office') loadOfficeNow();
       else if (view === 'occupancy') loadOccupancy();
-      else if (view === 'incharge') loadInCharge();
+
       else if (view === 'salary') loadSalary();
     }
 
@@ -211,10 +205,10 @@
         const res = await fetch(`/api/daily-data?date=${dateStr}`);
         currentDailyData = await res.json();
         if (!currentDailyData.occupancy) currentDailyData.occupancy = {};
-        if (!currentDailyData.hotelInCharge) currentDailyData.hotelInCharge = {};
+
         if (!currentDailyData.inCharge) currentDailyData.inCharge = {};
       } catch (e) {
-        currentDailyData = { occupancy: {}, hotelInCharge: {}, inCharge: {} };
+        currentDailyData = { occupancy: {}, inCharge: {}, shiftOverrides: {} };
       }
     }
 
@@ -251,14 +245,6 @@
       saveField('occupancy', occ);
     }
 
-    function saveHotelInCharge() {
-      const ic = {};
-      hotels.forEach(h => {
-        const input = document.getElementById('ic-' + h.key);
-        if (input && input.value.trim()) ic[h.key] = input.value.trim();
-      });
-      saveField('hotelInCharge', ic);
-    }
 
     function saveInCharge() {
       const ic = {};
@@ -266,6 +252,39 @@
         if (sel.value) ic[sel.dataset.shift] = sel.value;
       });
       saveField('inCharge', ic).then(() => renderRoster());
+    }
+
+    function editShift(empName) {
+      const shiftCodes = currentRosterData?.shiftCodes || [];
+      if (!shiftCodes.length) return;
+      const overrides = currentDailyData.shiftOverrides || {};
+      const currentCode = overrides[empName] || '';
+
+      // Build a popup inline
+      let opts = '<option value="">-- Original --</option>';
+      shiftCodes.forEach(s => {
+        opts += `<option value="${s.code}"${s.code === currentCode ? ' selected' : ''}>${s.label}</option>`;
+      });
+
+      const row = event.target.closest('.employee-row');
+      const existing = row.querySelector('.shift-select');
+      if (existing) { existing.remove(); return; } // toggle off
+
+      const sel = document.createElement('select');
+      sel.className = 'shift-select';
+      sel.innerHTML = opts;
+      sel.onchange = function() {
+        const val = this.value;
+        if (!currentDailyData.shiftOverrides) currentDailyData.shiftOverrides = {};
+        if (val) {
+          currentDailyData.shiftOverrides[empName] = val;
+        } else {
+          delete currentDailyData.shiftOverrides[empName];
+        }
+        saveField('shiftOverrides', currentDailyData.shiftOverrides).then(() => renderRoster());
+      };
+      row.appendChild(sel);
+      sel.focus();
     }
 
     async function ensureAvailableDates() {
@@ -334,41 +353,92 @@
 
       if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
 
-      const workingShifts = data.shifts.filter(s =>
-        ['Morning','Between','Evening','Night'].some(w => s.label.includes(w))
-      );
+      const overrides = currentDailyData.shiftOverrides || {};
+      const shiftCodes = data.shiftCodes || [];
 
+      // Rebuild shifts with overrides applied
+      const allEmployees = [];
+      data.shifts.forEach(shift => {
+        shift.employees.forEach(emp => {
+          allEmployees.push({ ...emp, originalLabel: shift.label });
+        });
+      });
+
+      const rebuiltShifts = {};
+      allEmployees.forEach(emp => {
+        const overrideCode = overrides[emp.name];
+        let targetLabel = emp.originalLabel;
+        if (overrideCode) {
+          const found = shiftCodes.find(s => s.code === overrideCode);
+          if (found) targetLabel = found.label;
+        }
+        if (!rebuiltShifts[targetLabel]) rebuiltShifts[targetLabel] = [];
+        rebuiltShifts[targetLabel].push({ ...emp, modified: !!overrideCode, currentLabel: targetLabel });
+      });
+
+      const shiftOrder = data.shifts.map(s => s.label);
+      shiftCodes.forEach(s => { if (!shiftOrder.includes(s.label)) shiftOrder.push(s.label); });
+
+      const workingShifts = [];
       const savedIC = currentDailyData.inCharge || {};
+      const priority = data.inChargePriority || [];
+
+      // Auto-assign in-charge per shift based on priority (if no manual override)
+      const effectiveIC = {};
+      shiftOrder.forEach(label => {
+        const employees = rebuiltShifts[label];
+        if (!employees || employees.length === 0) return;
+        if (!['Morning','Between','Evening','Night'].some(w => label.includes(w))) return;
+        if (savedIC[label]) {
+          effectiveIC[label] = savedIC[label];
+        } else {
+          const names = employees.map(e => e.name);
+          const auto = priority.find(p => names.includes(p));
+          if (auto) effectiveIC[label] = auto;
+        }
+      });
 
       let html = '';
-      data.shifts.forEach(shift => {
-        const cls = getShiftClass(shift.label);
-        const icName = savedIC[shift.label] || '';
-        html += `<div class="shift-card ${cls}"><div class="shift-header">${shift.label}<span class="count">${shift.employees.length}</span></div><div class="shift-body">`;
-        shift.employees.forEach(emp => {
+      shiftOrder.forEach(label => {
+        const employees = rebuiltShifts[label];
+        if (!employees || employees.length === 0) return;
+        const cls = getShiftClass(label);
+        const icName = effectiveIC[label] || '';
+        const isManual = !!savedIC[label];
+        if (['Morning','Between','Evening','Night'].some(w => label.includes(w))) {
+          workingShifts.push({ label, employees });
+        }
+        html += `<div class="shift-card ${cls}"><div class="shift-header">${label}<span class="count">${employees.length}</span></div><div class="shift-body">`;
+        employees.forEach(emp => {
           const isIC = icName && emp.name === icName;
           const ci = (emp.calledIn ? ' called-in' : '') + (isIC ? ' is-incharge' : '');
+          const modCls = emp.modified ? ' shift-modified' : '';
           let badge = '';
           if (isIC) badge += '<span class="incharge-badge">🔑 IN-CHARGE</span>';
           if (emp.calledIn) badge += '<span class="called-in-badge">CALLED IN</span>';
+          if (emp.modified) badge += '<span class="modified-badge">MODIFIED</span>';
           const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
-          html += `<div class="employee-row${ci}"><span class="emp-name">${emp.name}</span>${time}${badge}</div>`;
+          const editBtn = `<span class="shift-edit-btn" onclick="editShift('${emp.name.replace(/'/g, "\\'")}')">Edit</span>`;
+          html += `<div class="employee-row${ci}${modCls}"><span class="emp-name">${emp.name}</span>${time}${badge}${editBtn}</div>`;
         });
         html += '</div></div>';
       });
 
-      // In-Charge per shift section
+      // In-Charge per shift section (manual override)
       if (workingShifts.length > 0) {
         html += '<div class="panel"><h3>🔑 In-Charge Per Shift</h3>';
+        html += '<p style="color:#64748b; font-size:0.75rem; margin-bottom:12px;">Auto-assigned by priority. Change manually if needed.</p>';
         workingShifts.forEach(s => {
-          const saved = savedIC[s.label] || '';
+          const current = effectiveIC[s.label] || '';
+          const isManual = !!savedIC[s.label];
+          const autoTag = !isManual && current ? ' (auto)' : '';
           html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
             <label style="font-size:0.85rem; color:#f59e0b; font-weight:600; min-width:120px;">${s.label}</label>
             <select class="incharge-select" data-shift="${s.label}" onchange="saveInCharge()"
               style="flex:1; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;">
-              <option value="">-- Select --</option>`;
+              <option value="">-- Auto (Priority) --</option>`;
           s.employees.forEach(emp => {
-            html += `<option value="${emp.name}"${emp.name === saved ? ' selected' : ''}>${emp.name}</option>`;
+            html += `<option value="${emp.name}"${emp.name === current && isManual ? ' selected' : ''}>${emp.name}</option>`;
           });
           html += `</select></div>`;
         });
@@ -454,47 +524,6 @@
       } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
     }
 
-    // ==================== HOTEL IN-CHARGE (GM Replacement) ====================
-    async function loadInCharge() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-
-      try {
-        await ensureAvailableDates();
-        syncIndex();
-        await loadDailyData(formatDateParam(currentDate));
-        updateNav();
-
-        const ic = currentDailyData.hotelInCharge || {};
-        const assigned = Object.values(ic).filter(v => v).length;
-
-        statsBar.innerHTML = `
-          <div class="stat"><div class="value">${assigned}/${hotels.length}</div><div class="label">Assigned</div></div>`;
-
-        let html = '<div class="panel"><h3>Hotel In-Charge (GM Replacement - Eid Period)</h3>';
-        html += '<p style="color:#94a3b8; font-size:0.8rem; margin-bottom:16px;">Enter who is responsible for each hotel during the Eid holiday period as acting GM replacement.</p>';
-
-        hotels.forEach(h => {
-          const saved = ic[h.key] || '';
-          html += `<div class="ic-card">
-            <div class="ic-hotel-header">
-              <span class="ic-hotel-icon">${h.icon}</span>
-              <div><div class="ic-hotel-name">${h.name}</div><div class="ic-hotel-sub">Acting GM / In-Charge</div></div>
-            </div>
-            <div class="ic-field">
-              <label>IN-CHARGE:</label>
-              <input type="text" id="ic-${h.key}" value="${saved}" placeholder="Enter name..."
-                style="flex:1; background:#1e293b; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;"
-                onchange="saveHotelInCharge()">
-            </div>
-          </div>`;
-        });
-
-        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
-        content.innerHTML = html;
-      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
-    }
 
     // ==================== SALARY ====================
     async function loadSalary() {
