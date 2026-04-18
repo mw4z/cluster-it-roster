@@ -9,5 +9,12 @@
     "inCharge": {
       "?? Morning": "Salem Seif"
     }
+  },
+  "2025-03-21": {
+    "occupancy": {
+      "Fairmont": 90
+    },
+    "hotelInCharge": {},
+    "inCharge": {}
   }
 }
