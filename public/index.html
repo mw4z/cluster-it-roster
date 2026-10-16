@@ -251,6 +251,54 @@
     @media (max-width: 420px) { .tab { padding: 12px 6px 13px; gap: 6px; font-size: 14px; } }
     @media (max-width: 400px) { .person .tag { font-size: 10.5px; padding: 1px 5px; } .row-label { width: 92px; } }
     @media (max-width: 340px) { .tiles { grid-template-columns: minmax(0, 1fr); } .tab { padding: 12px 8px; font-size: 14px; } }
+
+    .week thead th.is-today b { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 2px; }
+
+    /* ---------- PC / wide screens ---------- */
+    @media (min-width: 900px) {
+      body { background: var(--surface); }
+      .app { max-width: 1240px; border: 0; background: var(--bg); box-shadow: 0 0 0 1px var(--line); }
+      .appbar { padding: 12px 24px 12px 16px; }
+      .wordmark { font-size: 23px; }
+      .tabs { top: 64px; padding: 0 20px; gap: 4px; }
+      .tab { flex: 0 0 auto; padding: 14px 18px 15px; }
+      main { padding: 24px 28px 48px; }
+
+      /* Roster: calendar in a sticky left column, shifts on the right */
+      #view-day:not([hidden]) { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
+      #calDay { position: sticky; top: 132px; }
+      #dayBody > .panel:first-child, #dayBody > .banner:first-child { margin-top: 0; }
+      #dayBody .banner + .panel { margin-top: 12px; }
+      #dayBody .tiles { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; }
+      #dayBody .panel { padding: 0 12px 12px; }
+      .tile { padding: 14px 14px 10px; }
+      .person { font-size: 14.5px; }
+
+      /* Week: room for two weeks */
+      #view-week:not([hidden]) { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; }
+      #calWeek { max-width: 520px; }
+      .week td { min-width: 46px; padding: 6px 2px; }
+      .week th.name { min-width: 170px; max-width: 220px; font-size: 14px; padding: 7px 14px; }
+      .chip { min-width: 34px; height: 26px; }
+
+      /* On duty and Me: two columns */
+      #dutyBody .rows { display: grid; grid-template-columns: 1fr 1fr; }
+      #dutyBody .duty-row:nth-child(2) { border-top: 0; }
+      #dutyBody .duty-row:nth-child(odd) { border-right: 1px solid var(--line); }
+      .clock .t { font-size: 48px; }
+      #meBody { max-width: 900px; }
+
+      /* Pop-ups become centred dialogs */
+      .sheet { inset: 0; display: grid; place-items: center; transform: none; opacity: 0; transition: opacity .16s ease; }
+      .sheet.open { opacity: 1; }
+      .sheet-inner { width: 520px; max-width: calc(100vw - 48px); border-radius: 12px; padding: 20px 22px 20px; max-height: 84vh; box-shadow: 0 20px 50px rgba(16, 24, 40, .22); transform: translateY(8px); transition: transform .16s ease; }
+      .sheet.open .sheet-inner { transform: none; }
+      .grabber { display: none; }
+      .toast { bottom: 32px; }
+    }
+    @media (min-width: 1200px) {
+      #view-day:not([hidden]) { grid-template-columns: 380px minmax(0, 1fr); }
+    }
   </style>
 </head>
 <body>
@@ -341,6 +389,8 @@
   const norm = n => String(n || '').toLowerCase().replace(/[,.]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
 
   const short = code => code === 'OUTING' ? 'OUT' : code;
+  // PC / wide-screen layout; re-render when the window crosses the breakpoint.
+  const wide = matchMedia('(min-width: 900px)');
   const HOURS = { M: [8, 17], B: [12, 21], E: [15, 23], N: [23, 32] };
 
   // [start, end) in hours for a working entry; honours times like "8:00 PM - 8:00 AM".
@@ -399,6 +449,8 @@
   }
   function closeSheet() { $('scrim').classList.remove('open'); $('sheet').classList.remove('open'); }
   $('scrim').onclick = closeSheet;
+  // On a PC the dialog layer covers the page; clicking outside the box closes it.
+  $('sheet').addEventListener('click', e => { if (e.target === $('sheet')) closeSheet(); });
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') return closeSheet();
     if (e.target.matches('input, select, textarea') || $('sheet').classList.contains('open')) return;
@@ -596,23 +648,24 @@
 
   function renderWeek() {
     const [first, last] = rosterRange();
-    const days = stripDays(7);
+    const n = wide.matches ? 14 : 7; // two weeks side by side on a PC
+    const days = stripDays(n);
     renderCal($('calWeek'), {
-      title: rangeLabel(days[0], days[6]),
+      title: rangeLabel(days[0], days[n - 1]),
       days, selectable: true,
-      canPrev: days[0] > first, canNext: days[6] < last,
-      onPrev: () => moveStrip(-7), onNext: () => moveStrip(7),
+      canPrev: days[0] > first, canNext: days[n - 1] < last,
+      onPrev: () => moveStrip(-n), onNext: () => moveStrip(n),
       onPick: k => { selectDate(k); switchView('day'); }
     });
     const w = state.strip;
     if (!w) return;
-    const cols = w.days.slice(0, 7);
+    const cols = w.days.slice(0, n);
     let html = `<div class="week-wrap"><table class="week"><thead><tr><th class="name" style="color:var(--muted);font-size:12px">Name</th>${cols.map(d =>
-      `<th class="${d.key === state.selected ? 'is-sel' : ''}">${DOW[dow(d.key)]}<b>${dnum(d.key)}</b></th>`).join('')}</tr></thead><tbody>`;
+      `<th class="${d.key === state.selected ? 'is-sel' : ''}${d.key === state.today ? ' is-today' : ''}">${DOW[dow(d.key)]}<b>${dnum(d.key)}</b></th>`).join('')}</tr></thead><tbody>`;
     const rows = [...w.employees].sort((a, b) => (sameName(b.name, state.me) ? 1 : 0) - (sameName(a.name, state.me) ? 1 : 0));
     rows.forEach(emp => {
       html += `<tr class="${sameName(emp.name, state.me) ? 'me' : ''}"><th class="name" title="${esc(emp.name)}">${esc(emp.name)}</th>`;
-      emp.shifts.slice(0, 7).forEach((s, i) => {
+      emp.shifts.slice(0, n).forEach((s, i) => {
         if (!cols[i].inRoster) { html += '<td style="color:var(--faint)">·</td>'; return; }
         html += `<td><button class="chip k-${s ? kind(s.code) : 'off'}${s && s.calledIn ? ' called' : ''}" data-edit-key="${cols[i].key}" data-edit-emp="${esc(emp.name)}" title="${s ? esc(plain(s.label)) + (s.calledIn ? ' — called in' : '') : 'Empty'} · tap to change"${s ? '' : ' style="background:none;color:var(--faint)"'}>${s ? esc(short(s.code)) : '–'}</button></td>`;
       });
@@ -924,6 +977,7 @@
 
   // ---------- boot ----------
   document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
+  wide.addEventListener('change', () => { if (state.view === 'week') loadStrip().then(render); else render(); });
   $('menuBtn').onclick = rostersSheet;
   $('moreBtn').onclick = moreSheet;
   $('bellBtn').onclick = alertsSheet;
