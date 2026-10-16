@@ -423,16 +423,16 @@
       state.day.daily = r.data;
       return true;
     } catch (e) {
-      if (e.status === 401) { askPin(() => saveDaily(fields).then(ok => ok && render())); return false; }
+      if (e.status === 401) { askPin(() => saveDaily(fields).then(ok => ok && render()), e.message); return false; }
       toast(e.message);
       return false;
     }
   }
 
-  function askPin(retry) {
+  function askPin(retry, reason) {
     openSheet(`
       <h2>Enter admin PIN</h2>
-      <p class="hint">Changes to the roster need the team PIN.</p>
+      <p class="hint" style="${reason === 'Wrong PIN' ? 'color:var(--red)' : ''}">${reason === 'Wrong PIN' ? 'Wrong PIN — try again.' : 'Changes to the roster need the team PIN.'}</p>
       <div class="me-pick" style="margin-top:12px"><input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off"></div>
       <div class="sheet-actions"><button class="ghost" id="pinCancel">Cancel</button><button class="primary" id="pinOk">Unlock</button></div>`,
       el => {
@@ -793,7 +793,7 @@
     toast('Uploading…');
     const res = await fetch(`/api/rosters?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers, body: file });
     const body = await res.json().catch(() => ({}));
-    if (res.status === 401) return askPin(() => uploadRoster(file));
+    if (res.status === 401) return askPin(() => uploadRoster(file), body.error);
     if (!res.ok) return toast(body.error || 'Upload failed');
     toast(`${body.replaced ? 'Replaced' : 'Added'} ${body.file} · ${rangeLabel(body.start, body.end)}`);
     await reloadAll();
@@ -806,7 +806,7 @@
       el.querySelector('#caNo').onclick = rostersSheet;
       el.querySelector('#caYes').onclick = async () => {
         try { await api(`/api/rosters/${encodeURIComponent(file)}`, { method: 'DELETE' }); }
-        catch (e) { if (e.status === 401) return askPin(() => confirmArchive(file)); return toast(e.message); }
+        catch (e) { if (e.status === 401) return askPin(() => confirmArchive(file), e.message); return toast(e.message); }
         toast('Roster removed');
         await reloadAll();
         rostersSheet();

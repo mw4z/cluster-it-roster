@@ -9,6 +9,9 @@ const store = require('./store');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Render sits behind one proxy; this makes req.ip the visitor's address.
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: '50kb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -27,23 +30,62 @@ function dateParam(req, res) {
   return key;
 }
 
-function pinMatches(req) {
-  const given = Buffer.from(String(req.get('x-admin-pin') || ''));
+// --- PIN brute-force protection ---
+// A 6-digit PIN can be guessed by a script, so wrong attempts are limited:
+// 5 per device per 15 min, and 30 across everyone per hour.
+const LOCK_MS = 15 * 60 * 1000;
+const PER_IP_LIMIT = 5;
+const GLOBAL_LIMIT = 30;
+const failures = new Map(); // ip -> { count, first }
+let globalFailures = { count: 0, first: Date.now() };
+
+function lockedFor(ip) {
+  const now = Date.now();
+  if (now - globalFailures.first > 60 * 60 * 1000) globalFailures = { count: 0, first: now };
+  if (globalFailures.count >= GLOBAL_LIMIT) return globalFailures.first + 60 * 60 * 1000 - now;
+  const f = failures.get(ip);
+  if (!f) return 0;
+  if (now - f.first > LOCK_MS) { failures.delete(ip); return 0; }
+  return f.count >= PER_IP_LIMIT ? f.first + LOCK_MS - now : 0;
+}
+
+function recordFailure(ip) {
+  const now = Date.now();
+  const f = failures.get(ip);
+  if (!f || now - f.first > LOCK_MS) failures.set(ip, { count: 1, first: now });
+  else f.count++;
+  globalFailures.count++;
+  if (failures.size > 5000) failures.clear();
+}
+
+// Returns true when the PIN is right; otherwise sends 401/429 and returns false.
+function verifyPin(req, res) {
+  const lock = lockedFor(req.ip);
+  if (lock > 0) {
+    res.status(429).json({ error: `Too many wrong PINs. Try again in ${Math.ceil(lock / 60000)} min.` });
+    return false;
+  }
+  const raw = String(req.get('x-admin-pin') || '');
+  const given = Buffer.from(raw);
   const expected = Buffer.from(config.adminPin);
-  return given.length === expected.length && crypto.timingSafeEqual(given, expected);
+  if (given.length === expected.length && crypto.timingSafeEqual(given, expected)) {
+    failures.delete(req.ip);
+    return true;
+  }
+  if (raw) recordFailure(req.ip); // a missing PIN is just the first prompt, not a guess
+  res.status(401).json({ error: raw ? 'Wrong PIN' : 'PIN required' });
+  return false;
 }
 
 // Day edits are open unless ADMIN_PIN is set, in which case the x-admin-pin header must match.
 function checkPin(req, res, next) {
-  if (!config.adminPin || pinMatches(req)) return next();
-  res.status(401).json({ error: 'PIN required' });
+  if (!config.adminPin || verifyPin(req, res)) next();
 }
 
 // Roster file changes always need a PIN; they are disabled until ADMIN_PIN is set.
 function requirePin(req, res, next) {
   if (!config.adminPin) return res.status(403).json({ error: 'Set ADMIN_PIN on the server to enable roster uploads' });
-  if (pinMatches(req)) return next();
-  res.status(401).json({ error: 'PIN required' });
+  if (verifyPin(req, res)) next();
 }
 
 // --- Meta ---
