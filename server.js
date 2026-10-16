@@ -165,7 +165,8 @@ app.get('/api/roster', (req, res) => {
       shiftCodes: Object.entries(config.shiftMap).map(([code, label]) => ({ code, label })),
       workingCodes: roster.WORKING_CODES,
       requiredShifts: config.requiredShifts,
-      inChargePriority: config.inChargePriority
+      // Priority names resolved to how they are spelled in the roster
+      inChargePriority: config.inChargePriority.map(p => data.employees.find(e => roster.sameName(e.name, p))?.name || p)
     });
   } catch (err) {
     console.error('API error:', err);

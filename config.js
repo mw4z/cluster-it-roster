@@ -45,13 +45,14 @@ module.exports = {
     EX: "📝 Exam Leave",
     PL: "🕐 Permission Leave",
     C: "👶 Child Leave",
-    TR: "🎓 Training"
+    TR: "🎓 Training",
+    OUTING: "🏕️ IT Outing"
   },
 
   // Display order for shifts in messages
   shiftOrder: [
     "🕘 Morning", "🟠 Between", "🌆 Evening", "🌙 Night",
-    "📋 Task Force", "🎓 Training",
+    "📋 Task Force", "🎓 Training", "🏕️ IT Outing",
     "🟨 Day Off", "🟪 Pending Off (Taken)", "🔵 Pending Off (Actual)",
     "🤒 Sick Leave", "🖤 Bereavement Leave", "📝 Exam Leave",
     "🕐 Permission Leave", "👶 Child Leave", "⚪ Unpaid Vacation",
@@ -121,7 +122,7 @@ module.exports = {
     if (endPeriod === 'AM' && endHour === 12) end24 = 0;
 
     // Classify based on start time
-    if (start24 >= 22 || start24 < 4) return 'N';    // Night: starts 22:00-03:59
+    if (start24 >= 18 || start24 < 4) return 'N';    // Night: starts 18:00-03:59 (e.g. 8:00 PM - 8:00 AM)
     if (start24 >= 6 && start24 < 10) return 'M';     // Morning: starts 06:00-09:59
     if (start24 >= 10 && start24 < 13) return 'B';    // Between: starts 10:00-12:59
     if (start24 >= 13 && start24 < 18) return 'E';    // Evening: starts 13:00-17:59

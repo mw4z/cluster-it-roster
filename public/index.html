@@ -140,7 +140,11 @@
     .row:first-child { border-top: 0; }
     .row-label { font-weight: 600; font-size: 14px; min-width: 104px; }
     .row-val { flex: 1; font-size: 14px; color: var(--text-2); }
-    .row-val .person { display: inline; padding: 0; }
+    .row-val .person { display: inline; width: auto; padding: 0; }
+    .people .person { align-items: flex-start; }
+    .people .person .nm { white-space: normal; overflow-wrap: anywhere; }
+    .person .nm small { display: block; color: var(--muted); font-size: 12px; }
+    .tile-sub.ok { color: var(--muted); font-style: italic; }
     .row-count { font-size: 13px; color: var(--muted); }
 
     .bar { height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; margin-top: 6px; }
@@ -346,9 +350,29 @@
   const sameName = (a, b) => norm(a) === norm(b);
   const norm = n => String(n || '').toLowerCase().replace(/[,.]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
 
+  const short = code => code === 'OUTING' ? 'OUT' : code;
+  const HOURS = { M: [8, 17], B: [12, 21], E: [15, 23], N: [23, 32] };
+
+  // [start, end) in hours for a working entry; honours times like "8:00 PM - 8:00 AM".
+  function shiftHours(x) {
+    if (!HOURS[x.code]) return null;
+    const m = (x.rawTime || '').match(/(\d{1,2}):(\d{2})\s*(AM|PM)?\s*-\s*(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (!m) return HOURS[x.code];
+    const to24 = (h, min, p) => {
+      h = +h;
+      if (p && /pm/i.test(p) && h < 12) h += 12;
+      if (p && /am/i.test(p) && h === 12) h = 0;
+      return h + min / 60;
+    };
+    const s = to24(m[1], +m[2], m[3]);
+    let e = to24(m[4], +m[5], m[6]);
+    if (e <= s) e += 24;
+    return [s, e];
+  }
+
   function kind(code) {
     if (['M', 'B', 'E', 'N'].includes(code)) return code;
-    if (['T', 'TR'].includes(code)) return 'task';
+    if (['T', 'TR', 'OUTING'].includes(code)) return 'task';
     if (['OFF', 'X', 'Z'].includes(code)) return 'off';
     return 'leave';
   }
@@ -457,7 +481,15 @@
     working.forEach(g => { ic[g.label] = pickInCharge(g.employees.map(e => e.name), icMap[g.label]); });
     const counts = { M: 0, B: 0, E: 0, N: 0 };
     entries.forEach(e => { if (counts[e.code] !== undefined) counts[e.code]++; });
-    const gaps = state.day.notFound ? [] : state.day.requiredShifts.filter(c => !counts[c]);
+    // Same rule as the server: covered when someone works at least half of that shift's hours.
+    const covered = code => {
+      const [s, e] = HOURS[code];
+      return entries.some(x => {
+        const w = shiftHours(x);
+        return w && Math.min(e, w[1]) - Math.max(s, w[0]) >= (e - s) / 2;
+      });
+    };
+    const gaps = state.day.notFound ? [] : state.day.requiredShifts.filter(c => !covered(c));
     return { entries, groups, working, other, ic, gaps, workingCount: entries.filter(e => ['M', 'B', 'E', 'N', 'T', 'TR'].includes(e.code)).length };
   }
 
@@ -516,7 +548,7 @@
       const label = plain(d.shiftCodes.find(s => s.code === code).label);
       if (!g) {
         if (!d.requiredShifts.includes(code)) return;
-        html += `<div class="tile"><div class="tile-title">${esc(label)}</div><div class="tile-sub warn">Nobody scheduled</div></div>`;
+        html += `<div class="tile"><div class="tile-title">${esc(label)}</div>${m.gaps.includes(code) ? '<div class="tile-sub warn">Nobody scheduled</div>' : '<div class="tile-sub ok">Covered by longer shifts</div>'}</div>`;
         return;
       }
       const ic = m.ic[g.label];
@@ -526,7 +558,7 @@
         if (ic && ic.name === e.name) tags.push('<span class="tag ic">In-charge</span>');
         if (e.calledIn) tags.push('<span class="tag call">Called in</span>');
         if (e.modified) tags.push('<span class="tag mod">Edited</span>');
-        html += `<li><button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}"><span class="nm">${esc(e.name)}${e.rawTime ? ` <small style="color:var(--muted)">${esc(e.rawTime)}</small>` : ''}</span>${tags.join('')}</button></li>`;
+        html += `<li><button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}"><span class="nm">${esc(e.name)}${e.rawTime ? `<small>${esc(e.rawTime)}</small>` : ''}</span>${tags.join('')}</button></li>`;
       });
       html += '</ul></div>';
     });
@@ -536,7 +568,7 @@
       html += `<div class="rows" style="margin-top:8px">`;
       m.other.forEach(g => {
         html += `<div class="row"><div class="row-label">${esc(plain(g.label))}</div><div class="row-val">${g.employees.map(e =>
-          `<button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}">${esc(e.name)}${e.modified ? ' <span class="tag mod">Edited</span>' : ''}${e.pendingOff ? ' <span class="tag po">Pending off</span>' : ''}</button>`).join(', ')}</div><div class="row-count">${g.employees.length}</div></div>`;
+          `<button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}">${esc(e.name)}${e.calledIn ? ' <span class="tag call">Called in</span>' : ''}${e.modified ? ' <span class="tag mod">Edited</span>' : ''}${e.pendingOff ? ' <span class="tag po">Pending off</span>' : ''}</button>`).join(', ')}</div><div class="row-count">${g.employees.length}</div></div>`;
       });
       html += '</div>';
     }
@@ -566,7 +598,7 @@
       html += `<tr class="${sameName(emp.name, state.me) ? 'me' : ''}"><th class="name" title="${esc(emp.name)}">${esc(emp.name)}</th>`;
       emp.shifts.slice(0, 7).forEach((s, i) => {
         if (!cols[i].inRoster) { html += '<td style="color:var(--faint)">·</td>'; return; }
-        html += `<td><button class="chip k-${s ? kind(s.code) : 'off'}${s && s.calledIn ? ' called' : ''}" data-edit-key="${cols[i].key}" data-edit-emp="${esc(emp.name)}" title="${s ? esc(plain(s.label)) + (s.calledIn ? ' — called in' : '') : 'Empty'} · tap to change"${s ? '' : ' style="background:none;color:var(--faint)"'}>${s ? esc(s.code) : '–'}</button></td>`;
+        html += `<td><button class="chip k-${s ? kind(s.code) : 'off'}${s && s.calledIn ? ' called' : ''}" data-edit-key="${cols[i].key}" data-edit-emp="${esc(emp.name)}" title="${s ? esc(plain(s.label)) + (s.calledIn ? ' — called in' : '') : 'Empty'} · tap to change"${s ? '' : ' style="background:none;color:var(--faint)"'}>${s ? esc(short(s.code)) : '–'}</button></td>`;
       });
       html += '</tr>';
     });
@@ -630,7 +662,7 @@
           if (!d.inRoster) what = '<span style="color:var(--faint)">Not in roster yet</span>';
           else if (!sh) what = '<span style="color:var(--faint)">—</span>';
           else what = `${esc(plain(sh.label))}${sh.calledIn ? ' <span class="tag call">Called in</span>' : ''}<small>${esc(sh.rawTime || WINDOWS[sh.code] || '')}</small>`;
-          html += `<div class="day-row${d.key === state.today ? ' today' : ''}"><div class="d"><small>${DOW[dow(d.key)]}</small><b>${dnum(d.key)}</b></div><div class="what">${what}</div>${sh ? `<span class="chip k-${kind(sh.code)}">${esc(sh.code)}</span>` : ''}</div>`;
+          html += `<div class="day-row${d.key === state.today ? ' today' : ''}"><div class="d"><small>${DOW[dow(d.key)]}</small><b>${dnum(d.key)}</b></div><div class="what">${what}</div>${sh ? `<span class="chip k-${kind(sh.code)}">${esc(short(sh.code))}</span>` : ''}</div>`;
         });
         html += '</div>';
       } catch { html += '<div class="panel"><div class="empty">Couldn’t find your schedule.</div></div>'; }
@@ -734,6 +766,7 @@
       return `<div class="file-row">
         <div class="file-main"><b>${esc(f.file)}</b>${current ? ' <span class="tag mod">Current</span>' : ''}${f.activeDays === 0 ? ' <span class="tag po">Fully replaced</span>' : ''}
           <small>${esc(rangeLabel(f.start, f.end))} · ${f.employees} people · uploaded ${esc(fmtUploaded(f.uploadedAt))}</small>
+          ${f.otherSheets && f.otherSheets.length ? `<small>Using sheet “${esc(f.sheet)}” (also has: ${f.otherSheets.map(esc).join(', ')})</small>` : ''}
           ${f.ignoredDates ? `<small>${f.ignoredDates} stray date column(s) ignored</small>` : ''}</div>
         <a class="link-btn" href="/api/rosters/${encodeURIComponent(f.file)}" download aria-label="Download ${esc(f.file)}" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg></a>
         <button class="link-btn" data-archive="${esc(f.file)}" aria-label="Remove ${esc(f.file)}" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>

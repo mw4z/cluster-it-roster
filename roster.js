@@ -75,6 +75,36 @@ function normalizeName(name) {
     .split(/\s+/).filter(Boolean).sort().join(' ');
 }
 
+function editDistance(a, b) {
+  if (Math.abs(a.length - b.length) > 2) return 3;
+  let prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++) {
+    const cur = [i];
+    for (let j = 1; j <= b.length; j++) {
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    }
+    prev = cur;
+  }
+  return prev[b.length];
+}
+
+// Same person despite small spelling differences between sheets:
+// "Mohamed Alkhatabi" = "Mohammed Alkhattabi", "Abdulmajeed" = "Abdulmajed".
+// Every word must match, allowing one typo per word (two for long words).
+function sameName(a, b) {
+  const ta = normalizeName(a).split(' ');
+  const tb = normalizeName(b).split(' ');
+  if (!ta[0] || ta.length !== tb.length) return false;
+  if (ta.join(' ') === tb.join(' ')) return true;
+  const used = new Set();
+  return ta.every(t => {
+    const j = tb.findIndex((u, k) => !used.has(k) && editDistance(t, u) <= (Math.min(t.length, u.length) >= 8 ? 2 : 1));
+    if (j === -1) return false;
+    used.add(j);
+    return true;
+  });
+}
+
 function cleanName(name) {
   return (name || '').toString().replace(/\s+/g, ' ').trim();
 }
@@ -168,9 +198,7 @@ function longestConsecutiveRun(dates) {
   return best;
 }
 
-function parseWorkbook(filePath) {
-  const workbook = XLSX.readFile(filePath);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+function parseSheet(sheet) {
   const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
   if (!rows.length) return null;
 
@@ -182,17 +210,38 @@ function parseWorkbook(filePath) {
   }
   const dates = longestConsecutiveRun(allDates);
 
-  // Employees start at employeeStartRow and run until the first blank name.
+  // Employees start at employeeStartRow and run until the first blank name, or
+  // until the legend block (rows like "M | Morning Shift" with a code in column A).
   const employees = [];
   for (let i = config.employeeStartRow; i < rows.length; i++) {
     const name = cleanName(rows[i][1]);
     if (!name) break;
+    const first = rows[i][0];
+    if (typeof first === 'string' && first.trim() && !/^\d+$/.test(first.trim())) break;
     const cells = {};
     for (const d of dates) cells[d.key] = rows[i][d.col];
     employees.push({ name, cells });
   }
+  return { dates, allDates, employees };
+}
+
+// Uses the leftmost visible sheet that looks like a roster (dates in row 1,
+// names in column B). Copies like "NOV (2)" placed first win over older tabs.
+function parseWorkbook(filePath) {
+  const workbook = XLSX.readFile(filePath);
+  const meta = workbook.Workbook?.Sheets || [];
+  const visible = workbook.SheetNames.filter((n, i) => !(meta[i] && meta[i].Hidden));
+  let picked = null, sheetName = null;
+  for (const name of visible) {
+    const parsed = parseSheet(workbook.Sheets[name]);
+    if (parsed && parsed.dates.length && parsed.employees.length) { picked = parsed; sheetName = name; break; }
+  }
+  if (!picked) return null;
+  const { dates, allDates, employees } = picked;
 
   return {
+    sheet: sheetName,
+    otherSheets: visible.filter(n => n !== sheetName),
     dates,
     ignoredDates: allDates.length - dates.length,
     employees,
@@ -229,11 +278,15 @@ function mergeRosters(entries) {
   }
 
   const dateKeys = [...owner.keys()].sort();
-  const people = new Map();     // normalized name -> { name, cells }
+  const people = new Map();     // person key -> { name, cells }
+  const keyFor = name => {
+    for (const k of people.keys()) if (sameName(k, name)) return k;
+    return normalizeName(name);
+  };
   // Iterate oldest -> newest so the newest spelling of a name is kept.
   files.forEach((f, idx) => {
     for (const emp of f.employees) {
-      const k = normalizeName(emp.name);
+      const k = keyFor(emp.name);
       if (!people.has(k)) people.set(k, { name: emp.name, cells: {} });
       const p = people.get(k);
       p.name = emp.name;
@@ -244,7 +297,7 @@ function mergeRosters(entries) {
   const order = [];
   for (let i = files.length - 1; i >= 0; i--) {
     for (const emp of files[i].employees) {
-      const k = normalizeName(emp.name);
+      const k = keyFor(emp.name);
       if (!order.includes(k)) order.push(k);
     }
   }
@@ -252,6 +305,7 @@ function mergeRosters(entries) {
   return {
     files: files.map(f => ({
       file: f.file, uploadedAt: f.uploadedAt, start: f.start, end: f.end,
+      sheet: f.sheet, otherSheets: f.otherSheets,
       employees: f.employees.length, ignoredDates: f.ignoredDates,
       activeDays: f.dates.filter(d => files[owner.get(d.key).fileIdx] === f).length
     })),
@@ -372,7 +426,17 @@ function getWeek(startKey, days = 7, roster = getRoster()) {
 function coverage(day) {
   const counts = Object.fromEntries(WORKING_CODES.map(c => [c, 0]));
   if (day) for (const e of day.entries) if (counts[e.code] !== undefined) counts[e.code]++;
-  const gaps = day && day.found ? config.requiredShifts.filter(c => counts[c] === 0) : [];
+  // A required shift counts as covered when someone works at least half of its hours,
+  // so a 12-hour "8:00 AM - 8:00 PM" shift also covers most of Evening.
+  const covered = code => {
+    const [s, e] = SHIFT_WINDOWS[code];
+    return day.entries.some(x => {
+      if (!WORKING_CODES.includes(x.code)) return false;
+      const w = shiftWindow(x);
+      return w && Math.min(e, w[1]) - Math.max(s, w[0]) >= (e - s) / 2;
+    });
+  };
+  const gaps = day && day.found ? config.requiredShifts.filter(c => !covered(c)) : [];
   return { counts, gaps };
 }
 
@@ -380,7 +444,8 @@ function coverage(day) {
 function findEmployee(query, roster = getRoster()) {
   if (!roster || !query) return null;
   const q = normalizeName(query);
-  const exact = roster.employees.find(e => normalizeName(e.name) === q);
+  const exact = roster.employees.find(e => normalizeName(e.name) === q)
+    || roster.employees.find(e => sameName(e.name, query));
   if (exact) return exact;
   const tokens = q.split(' ');
   const partial = roster.employees.filter(e => {
@@ -406,8 +471,7 @@ function employeeSchedule(name, fromKey = todayKey(), days = 7, roster = getRost
 function pickInCharge(names, override) {
   if (override && names.includes(override)) return { name: override, manual: true };
   for (const p of config.inChargePriority) {
-    const np = normalizeName(p);
-    const match = names.find(n => normalizeName(n) === np);
+    const match = names.find(n => sameName(n, p));
     if (match) return { name: match, manual: false };
   }
   return null;
@@ -416,7 +480,7 @@ function pickInCharge(names, override) {
 module.exports = {
   TZ, WORKING_CODES, ON_DUTY_CODES,
   riyadhNow, todayKey, addDays, daysBetween, dayName, formatKey, isValidKey,
-  normalizeName, parseCellDate, parseShift, shiftWindow,
+  normalizeName, sameName, parseCellDate, parseShift, shiftWindow,
   ROSTER_DIR, getRoster, inspectWorkbook, getDay, groupByLabel, officeNow, salaryInfo, rosterCountdown,
   getWeek, coverage, findEmployee, employeeSchedule, pickInCharge
 };
