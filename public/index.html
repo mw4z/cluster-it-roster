@@ -123,10 +123,13 @@
     .tile-title { text-align: center; font-weight: 600; font-size: 16px; }
     .tile-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 1px; }
     .tile-sub.warn { color: var(--red); font-weight: 500; }
-    .people { list-style: none; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 6px; }
-    .person { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; padding: 5px 2px; font-size: 14px; color: var(--text); border-radius: 4px; }
+    .people { list-style: none; margin-top: 8px; border-top: 1px solid var(--line); }
+    .people li + li { border-top: 1px solid var(--line); }
+    .person { display: flex; align-items: flex-start; gap: 8px; width: 100%; text-align: left; padding: 8px 2px; font-size: 14px; line-height: 1.3; color: var(--text); border-radius: 4px; }
     .person:hover { background: var(--surface); }
-    .person .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .person .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor !important; flex: none; margin-top: 6px; }
+    .person .nm { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+    .person .meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin-top: 3px; font-size: 12px; color: var(--muted); }
     .tag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px; white-space: nowrap; letter-spacing: .1px; }
     .tag.ic { background: #fff4dc; color: #8a5a00; }
     .tag.call { background: var(--red-soft); color: var(--red); }
@@ -136,14 +139,12 @@
     .person.me .nm { font-weight: 700; }
 
     .rows { background: var(--tile); border: 1px solid var(--line-strong); border-radius: 4px; }
-    .row { display: flex; align-items: baseline; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
+    .row { display: flex; align-items: baseline; gap: 10px; padding: 11px 12px 3px; border-top: 1px solid var(--line); }
     .row:first-child { border-top: 0; }
-    .row-label { font-weight: 600; font-size: 14px; min-width: 104px; }
+    .row-label { font-weight: 600; font-size: 14px; width: 104px; flex: none; }
     .row-val { flex: 1; font-size: 14px; color: var(--text-2); }
-    .row-val .person { display: inline; width: auto; padding: 0; }
-    .people .person { align-items: flex-start; }
-    .people .person .nm { white-space: normal; overflow-wrap: anywhere; }
-    .person .nm small { display: block; color: var(--muted); font-size: 12px; }
+    .row-val .people { margin-top: -8px; border-top: 0; }
+    .row-val .person { padding: 8px 0; }
     .tile-sub.ok { color: var(--muted); font-style: italic; }
     .row-count { font-size: 13px; color: var(--muted); }
 
@@ -244,9 +245,8 @@
     .skeleton { height: 120px; border-radius: 10px; background: var(--surface); margin-top: 14px; animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 50% { opacity: .55; } }
     @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
-    .person .tag { flex: none; }
     @media (max-width: 420px) { .tab { padding: 12px 6px 13px; gap: 6px; font-size: 14px; } }
-    @media (max-width: 400px) { .person .tag { font-size: 10px; padding: 1px 4px; } .person { font-size: 13.5px; } }
+    @media (max-width: 400px) { .person .tag { font-size: 10.5px; padding: 1px 5px; } .row-label { width: 92px; } }
     @media (max-width: 340px) { .tiles { grid-template-columns: minmax(0, 1fr); } .tab { padding: 12px 8px; font-size: 14px; } }
   </style>
 </head>
@@ -506,6 +506,12 @@
   function rosterRange() { const a = state.day?.availableDates || []; return a.length ? [a[0], a[a.length - 1]] : [state.today, state.today]; }
 
   // ---------- views ----------
+  // One person per line: bullet in the shift colour, full name, tags and times underneath.
+  function personHTML(e, k, tags) {
+    const meta = [...tags, e.rawTime ? `<span>${esc(e.rawTime)}</span>` : ''].filter(Boolean).join('');
+    return `<li><button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}"><span class="dot k-${k}"></span><span class="nm">${esc(e.name)}${meta ? `<span class="meta">${meta}</span>` : ''}</span></button></li>`;
+  }
+
   function renderDay() {
     const [first, last] = rosterRange();
     const days = stripDays(14);
@@ -528,7 +534,7 @@
     if (d.isEid) html += `<div class="banner">Eid Mubarak — ${esc(d.dayName)}, ${esc(d.dateFormatted)}</div>`;
     if (m.gaps.length) html += `<div class="banner">No one scheduled on ${m.gaps.map(c => esc(plain(d.shiftCodes.find(s => s.code === c).label))).join(', ')}.</div>`;
 
-    html += `<div class="panel"><div class="panel-head">Timezone: Asia/Riyadh · <strong>${esc(d.dayName)}, ${esc(d.dateFormatted)}</strong> · ${m.workingCount} working</div><div class="tiles">`;
+    html += `<div class="panel"><div class="panel-head" title="Times in Asia/Riyadh"><strong>${esc(d.dayName)}, ${esc(d.dateFormatted)}</strong> · ${m.workingCount} working</div><div class="tiles">`;
     const shownCodes = new Set(m.working.map(g => g.code));
     ['M', 'B', 'E', 'N'].forEach(code => {
       const g = m.working.find(x => x.code === code);
@@ -545,7 +551,7 @@
         if (ic && ic.name === e.name) tags.push('<span class="tag ic">In-charge</span>');
         if (e.calledIn) tags.push('<span class="tag call">Called in</span>');
         if (e.modified) tags.push('<span class="tag mod">Edited</span>');
-        html += `<li><button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}"><span class="nm">${esc(e.name)}${e.rawTime ? `<small>${esc(e.rawTime)}</small>` : ''}</span>${tags.join('')}</button></li>`;
+        html += personHTML(e, kind(code), tags);
       });
       html += '</ul></div>';
     });
@@ -554,8 +560,13 @@
     if (m.other.length) {
       html += `<div class="rows" style="margin-top:8px">`;
       m.other.forEach(g => {
-        html += `<div class="row"><div class="row-label">${esc(plain(g.label))}</div><div class="row-val">${g.employees.map(e =>
-          `<button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}">${esc(e.name)}${e.calledIn ? ' <span class="tag call">Called in</span>' : ''}${e.modified ? ' <span class="tag mod">Edited</span>' : ''}${e.pendingOff ? ' <span class="tag po">Pending off</span>' : ''}</button>`).join(', ')}</div><div class="row-count">${g.employees.length}</div></div>`;
+        html += `<div class="row"><div class="row-label">${esc(plain(g.label))}</div><div class="row-val"><ul class="people">${g.employees.map(e => {
+          const tags = [];
+          if (e.calledIn) tags.push('<span class="tag call">Called in</span>');
+          if (e.modified) tags.push('<span class="tag mod">Edited</span>');
+          if (e.pendingOff) tags.push('<span class="tag po">Pending off</span>');
+          return personHTML(e, kind(e.code), tags);
+        }).join('')}</ul></div><div class="row-count">${g.employees.length}</div></div>`;
       });
       html += '</div>';
     }
