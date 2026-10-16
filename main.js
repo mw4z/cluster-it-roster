@@ -1,207 +1,103 @@
-const fs = require('fs');
-const path = require('path');
-const XLSX = require('xlsx');
+// main.js — WhatsApp message builders on top of roster.js
 const config = require('./config');
-
-const { daysEn, shiftMap, shiftOrder, weatherApiKey, salaryDay, employeeStartRow, employeeEndRow } = config;
+const roster = require('./roster');
+const store = require('./store');
 
 function formatEnglishDays(num) {
-  if (num === 0) return '0 days';
-  if (num === 1) return '1 day';
-  if (num === 2) return '2 days';
-  return `${num} days`;
+  return num === 1 ? '1 day' : `${num} days`;
 }
 
-function loadWorkbook() {
-  const fileName = fs.readdirSync(__dirname).find(f => f.endsWith('.xlsx'));
-  if (!fileName) return null;
+async function getWeatherLine() {
+  if (!config.weatherApiKey) return '';
   try {
-    const workbook = XLSX.readFile(path.join(__dirname, fileName));
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    return XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    const url = `https://api.openweathermap.org/data/2.5/weather?q=Mecca,SA&units=metric&lang=en&appid=${config.weatherApiKey}`;
+    const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!resp.ok) return '';
+    const w = await resp.json();
+    return `📍Weather: ${w.weather[0].description}, Currently ${Math.round(w.main.temp)}°C 🌡️\n\n`;
   } catch (e) {
-    console.error('Failed to read Excel file:', e.message);
-    return null;
+    console.warn('Weather API failed:', e.message);
+    return '';
   }
 }
 
-// Parse date from cell — handles both numeric Excel dates and strings like "3/20/2025 EID"
-function parseCellDate(cell, fallbackYear) {
-  if (typeof cell === 'number') {
-    return new Date(Date.UTC(1899, 11, 30) + cell * 86400000);
-  }
-  if (typeof cell === 'string' && cell.trim()) {
-    // Handle "3/20/2025 EID" or "3/20/2025" format
-    const dateStr = cell.trim().replace(/\s+(EID|eid).*/i, '');
-    // Parse as UTC to avoid timezone shifts
-    const parts = dateStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-    if (parts) {
-      return new Date(Date.UTC(parseInt(parts[3]), parseInt(parts[1]) - 1, parseInt(parts[2])));
-    }
-    const parsed = new Date(dateStr + ' UTC');
-    if (!isNaN(parsed)) return parsed;
-    const withYear = new Date(`${dateStr} ${fallbackYear} UTC`);
-    if (!isNaN(withYear)) return withYear;
-  }
-  return null;
-}
-
-function findDateColumn(firstRow, targetDate) {
-  const targetFormatted = targetDate
-    .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-    .replace(' ', '-')
-    .toLowerCase();
-
-  for (let i = 2; i < firstRow.length; i++) {
-    const cellDate = parseCellDate(firstRow[i], targetDate.getFullYear());
-    if (!cellDate) continue;
-
-    const colFormatted = cellDate
-      .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-      .replace(' ', '-')
-      .toLowerCase();
-
-    if (colFormatted === targetFormatted) return i;
-  }
-  return -1;
-}
-
-// Parse shift value from a cell, returns { code, label, calledIn, rawTime }
-function parseShift(cellValue) {
-  let raw = (cellValue || '').toString().trim();
-  if (!raw) return null;
-
-  // Detect flags
-  const calledIn = /[-]?z$/i.test(raw);
-  const pendingOff = /[-]?x$/i.test(raw);
-  raw = raw.replace(/[-]?[zx]$/i, '').trim();
-
-  if (!raw) return null;
-
-  // Try direct code match
-  const upper = raw.toUpperCase();
-  if (shiftMap[upper]) {
-    return {
-      code: upper,
-      label: shiftMap[upper],
-      calledIn,
-      rawTime: null
-    };
-  }
-
-  // Try time-range classification
-  const code = config.classifyTimeShift(raw);
-  if (code && shiftMap[code]) {
-    return {
-      code,
-      label: shiftMap[code],
-      calledIn,
-      rawTime: raw
-    };
-  }
-
-  return null;
+// Applies dashboard edits (shift overrides) to a day's entries.
+function applyOverrides(day) {
+  const overrides = store.get(day.key).shiftOverrides || {};
+  return day.entries.map(e => {
+    const code = overrides[e.name];
+    if (!code || !config.shiftMap[code]) return e;
+    return { ...e, code, label: config.shiftMap[code], rawTime: null, modified: true };
+  });
 }
 
 async function getTodayRosterMessage(includeExtras = true, isTomorrow = false) {
-  const dt = new Date();
-  if (isTomorrow) dt.setDate(dt.getDate() + 1);
-
+  const key = roster.todayKey(isTomorrow ? 1 : 0);
   const label = isTomorrow ? "Tomorrow's Roster" : "Today's Roster";
-  const dayName = daysEn[dt.getDay()];
-  const dateFormatted = dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }).replace(' ', '-');
 
-  let message = '';
+  const data = roster.getRoster();
+  if (!data) return '❌ Shift file not found or could not be read.';
+  const day = roster.getDay(key, data);
+  if (!day.found) return `⚠️ ${roster.formatKey(key)} is not in the current roster (${data.dateKeys[0]} → ${data.dateKeys[data.dateKeys.length - 1]}).`;
 
-  // Weather
-  if (includeExtras && weatherApiKey) {
-    try {
-      const url = `https://api.openweathermap.org/data/2.5/weather?q=Mecca,SA&units=metric&lang=en&appid=${weatherApiKey}`;
-      const resp = await fetch(url, { signal: AbortSignal.timeout(5000) });
-      if (resp.ok) {
-        const w = await resp.json();
-        message += `📍Weather: ${w.weather[0].description}, Currently ${Math.round(w.main.temp)}°C 🌡️\n\n`;
-      }
-    } catch (e) {
-      console.warn('Weather API failed:', e.message);
-    }
-  }
+  let message = includeExtras ? await getWeatherLine() : '';
+  message += `*${label} - ${roster.dayName(key)}, ${roster.formatKey(key).replace(' ', '-')} 📋:*\n\n`;
+  if (day.isEid) message += '🌙✨ *Eid Mubarak!* ✨🌙\n\n';
 
-  message += `*${label} - ${dayName}, ${dateFormatted} 📋:*\n\n`;
+  const entries = applyOverrides(day);
+  const groups = roster.groupByLabel(entries);
+  const inCharge = store.get(key).inCharge || {};
 
-  // Load Excel
-  const rawData = loadWorkbook();
-  if (!rawData) return '❌ Shift file not found or could not be read.';
-
-  const firstRow = rawData[0];
-  const dateCol = findDateColumn(firstRow, dt);
-  if (dateCol === -1) return '⚠️ Date column not found in roster.';
-
-  // Check if this date is an EID/holiday
-  const headerCell = (firstRow[dateCol] || '').toString();
-  if (/eid/i.test(headerCell)) {
-    message += '🌙✨ *Eid Mubarak!* ✨🌙\n\n';
-  }
-
-  // Build roster (flat list, no hotels)
-  const grouped = {};
-
-  for (let i = employeeStartRow; i <= Math.min(employeeEndRow, rawData.length - 1); i++) {
-    const row = rawData[i];
-    const name = (row[1] || '').toString().trim();
-    if (!name) continue;
-
-    const shift = parseShift(row[dateCol]);
-    if (!shift) continue;
-
-    const displayLabel = shift.label;
-    if (!grouped[displayLabel]) grouped[displayLabel] = [];
-
-    let entry = name;
-    if (shift.rawTime) entry += ` (${shift.rawTime})`;
-    if (shift.calledIn) entry += ' 🚨 Called in';
-
-    grouped[displayLabel].push(entry);
-  }
-
-  if (Object.keys(grouped).length === 0) {
+  if (!groups.length) {
     message += '⚠️ No shifts found for this date.\n';
   } else {
-    for (const shiftLabel of shiftOrder) {
-      if (grouped[shiftLabel]) {
-        message += `${shiftLabel}:\n` + grouped[shiftLabel].map(p => `- ${p}`).join('\n') + '\n\n';
-      }
+    for (const g of groups) {
+      const isWorking = roster.WORKING_CODES.includes(g.employees[0].code);
+      const ic = isWorking ? roster.pickInCharge(g.employees.map(e => e.name), inCharge[g.label]) : null;
+      message += `${g.label}:\n` + g.employees.map(e => {
+        let entry = `- ${e.name}`;
+        if (e.rawTime) entry += ` (${e.rawTime})`;
+        if (ic && ic.name === e.name) entry += ' 🔑';
+        if (e.calledIn) entry += ' 🚨 Called in';
+        if (e.pendingOff) entry += ' (pending off)';
+        return entry;
+      }).join('\n') + '\n\n';
     }
+  }
+
+  const { gaps } = roster.coverage({ ...day, entries });
+  if (gaps.length) {
+    message += `⚠️ *No one on:* ${gaps.map(c => config.shiftMap[c]).join(', ')}\n\n`;
   }
 
   message = message.trim();
 
-  // Extras: roster countdown + salary countdown
   if (includeExtras) {
-    const todayIndex = findDateColumn(firstRow, new Date());
-    const totalDays = todayIndex !== -1
-      ? firstRow.slice(todayIndex).filter(x => x).length
-      : 0;
-
-    const today = new Date();
-    const todayDay = today.getDate();
-    const afterSalary = todayDay > salaryDay;
-    const nextMonth = afterSalary ? today.getMonth() + 1 : today.getMonth();
-    const nextYear = afterSalary && today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
-    const salaryDate = new Date(nextYear, nextMonth, salaryDay);
-    const daysToSalary = Math.ceil((salaryDate - today) / (1000 * 60 * 60 * 24));
-
-    message += `\n\n📅 *${formatEnglishDays(totalDays)} left until the current roster ends*`;
-    message += `\n*💰 ${formatEnglishDays(daysToSalary)} left until salary*`;
+    const rc = roster.rosterCountdown(data);
+    const salary = roster.salaryInfo();
+    if (rc) message += `\n\n📅 *${formatEnglishDays(rc.daysLeft)} left until the current roster ends*`;
+    message += `\n*💰 ${formatEnglishDays(salary.daysLeft)} left until salary*`;
   }
-
   return message;
+}
+
+function getMyScheduleMessage(rosterName, days = 7) {
+  const sched = roster.employeeSchedule(rosterName, roster.todayKey(), days);
+  if (!sched) return null;
+  const lines = sched.days.map(d => {
+    const when = `${d.dayName.slice(0, 3)} ${d.short}`;
+    if (!d.inRoster) return `${when}: — not in roster yet`;
+    if (!d.shift) return `${when}: —`;
+    let s = `${when}: ${d.shift.label}`;
+    if (d.shift.rawTime) s += ` (${d.shift.rawTime})`;
+    if (d.shift.calledIn) s += ' 🚨';
+    return s;
+  });
+  return `🗓️ *${sched.name} — next ${days} days:*\n\n` + lines.join('\n');
 }
 
 module.exports = {
   getTodayRosterMessage,
-  loadWorkbook,
-  findDateColumn,
-  parseShift,
-  parseCellDate
+  getMyScheduleMessage,
+  formatEnglishDays
 };

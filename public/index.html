@@ -2,588 +2,914 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cluster IT Support - Roster</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Cluster IT Roster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f172a; --bg2: #1e293b; --bg3: #0f172a; --border: #334155; --border2: #475569;
-      --text: #e2e8f0; --text2: #f1f5f9; --muted: #94a3b8; --muted2: #64748b;
-      --accent: #60a5fa; --accent-bg: #2563eb; --accent-hover: #1d4ed8;
-      --header-bg: linear-gradient(135deg, #1e3a5f 0%, #0f172a 100%);
-      --card-bg: #1e293b; --row-bg: #0f172a;
-      --called-in-bg: #1c1117; --incharge-bg: #1a1708; --called-incharge-bg: #1c1310;
-      --modified-bg: #172554; --modified-border: #3b82f6; --modified-badge-bg: #1e3a5f;
-      --edit-btn-bg: #334155; --edit-btn-hover: #475569;
-      --select-bg: #1e293b;
-      --input-bg: #1e293b;
-      --spinner-border: #334155;
-      --error-bg: #1e293b;
+      --bg: #ffffff;
+      --surface: #f5f6f8;
+      --tile: #ffffff;
+      --line: #e4e7eb;
+      --line-strong: #d3d8de;
+      --text: #1d2125;
+      --text-2: #4a5059;
+      --muted: #8a9099;
+      --faint: #b9bec5;
+      --blue: #2f80ed;
+      --blue-press: #1f6fdb;
+      --blue-soft: #eaf2fd;
+      --green: #1f9d6b;
+      --red: #d64545;
+      --red-soft: #fdeeee;
+      --amber: #c7811a;
+      --shadow-bar: 0 -1px 0 var(--line), 0 -6px 16px rgba(16, 24, 40, .04);
+
+      --c-M: #2f80ed;  --c-M-bg: #eaf2fd;
+      --c-B: #c7811a;  --c-B-bg: #fdf4e6;
+      --c-E: #7b52d6;  --c-E-bg: #f2edfc;
+      --c-N: #3d4a9e;  --c-N-bg: #eceefa;
+      --c-off: #6f7680; --c-off-bg: #f1f2f4;
+      --c-leave: #1f9d6b; --c-leave-bg: #e8f6f0;
+      --c-task: #c2417a; --c-task-bg: #fcecf3;
     }
-    @media (prefers-color-scheme: light) {
+    @media (prefers-color-scheme: dark) {
       :root {
-        --bg: #f1f5f9; --bg2: #e2e8f0; --bg3: #f8fafc; --border: #cbd5e1; --border2: #94a3b8;
-        --text: #1e293b; --text2: #0f172a; --muted: #64748b; --muted2: #94a3b8;
-        --accent: #2563eb; --accent-bg: #2563eb; --accent-hover: #1d4ed8;
-        --header-bg: linear-gradient(135deg, #dbeafe 0%, #f1f5f9 100%);
-        --card-bg: #ffffff; --row-bg: #f8fafc;
-        --called-in-bg: #fef2f2; --incharge-bg: #fefce8; --called-incharge-bg: #fef9ee;
-        --modified-bg: #eff6ff; --modified-border: #3b82f6; --modified-badge-bg: #dbeafe;
-        --edit-btn-bg: #e2e8f0; --edit-btn-hover: #cbd5e1;
-        --select-bg: #ffffff;
-        --input-bg: #ffffff;
-        --spinner-border: #cbd5e1;
-        --error-bg: #ffffff;
+        --bg: #121417;
+        --surface: #1a1d21;
+        --tile: #1f2328;
+        --line: #2b3036;
+        --line-strong: #39404a;
+        --text: #eceef1;
+        --text-2: #c2c7ce;
+        --muted: #8b929b;
+        --faint: #5b626b;
+        --blue: #4b93f2;
+        --blue-press: #3a83e6;
+        --blue-soft: #1c2a3d;
+        --red-soft: #3a1f21;
+        --shadow-bar: 0 -1px 0 var(--line);
+        --c-M-bg: #1c2a3d; --c-B-bg: #33281a; --c-E-bg: #2a2340; --c-N-bg: #22263d;
+        --c-off-bg: #262a30; --c-leave-bg: #17302a; --c-task-bg: #36202b;
+        --c-N: #8c98e8; --c-E: #a98af0; --c-B: #e0a248;
       }
     }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    .header { background: var(--header-bg); padding: 20px; text-align: center; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 100; }
-    .header h1 { font-size: 1.4rem; color: var(--accent); margin-bottom: 8px; }
-    .eid-banner { background: linear-gradient(135deg, #854d0e, #a16207, #854d0e); color: #fef3c7; padding: 12px; text-align: center; font-size: 1.1rem; font-weight: 700; display: none; }
-
-    .date-nav { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; }
-    .date-nav button { background: var(--edit-btn-bg); color: var(--text); border: 1px solid var(--border2); padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 1rem; transition: all 0.2s; }
-    .date-nav button:hover { background: var(--edit-btn-hover); }
-    .date-nav button:disabled { opacity: 0.3; cursor: not-allowed; }
-    .date-nav button.today-btn { background: var(--accent-bg); border-color: #3b82f6; color: white; }
-    .date-nav button.today-btn:hover { background: var(--accent-hover); }
-    .date-display { font-size: 1.1rem; font-weight: 600; color: var(--text2); min-width: 200px; text-align: center; }
-    .date-display .day-name { color: var(--accent); font-size: 0.85rem; }
-
-    .tabs { display: flex; justify-content: center; gap: 6px; padding: 12px 16px; background: var(--bg2); border-bottom: 1px solid var(--border); overflow-x: auto; }
-    .tab { padding: 8px 14px; border-radius: 20px; border: 1px solid var(--border2); background: transparent; color: var(--muted); cursor: pointer; font-size: 0.82rem; white-space: nowrap; transition: all 0.2s; }
-    .tab:hover { color: var(--text); border-color: var(--accent); }
-    .tab.active { background: var(--accent-bg); color: white; border-color: var(--accent-bg); }
-
-    .stats-bar { display: flex; justify-content: center; gap: 20px; padding: 14px 20px; background: var(--bg2); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-    .stat { text-align: center; padding: 6px 14px; background: var(--bg3); border-radius: 10px; border: 1px solid var(--border); }
-    .stat .value { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
-    .stat .label { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
-
-    .content { max-width: 750px; margin: 0 auto; padding: 16px; }
-
-    /* Shift Card */
-    .shift-card { background: var(--card-bg); border-radius: 12px; margin-bottom: 12px; overflow: hidden; border: 1px solid var(--border); }
-    .shift-header { padding: 12px 18px; font-weight: 700; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
-    .shift-header .count { margin-left: auto; background: var(--edit-btn-bg); padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; color: var(--muted); }
-    .shift-morning .shift-header { border-left: 4px solid #06b6d4; }
-    .shift-between .shift-header { border-left: 4px solid #f59e0b; }
-    .shift-evening .shift-header { border-left: 4px solid #a855f7; }
-    .shift-night .shift-header { border-left: 4px solid #6366f1; }
-    .shift-off .shift-header { border-left: 4px solid #6b7280; }
-    .shift-leave .shift-header { border-left: 4px solid #22c55e; }
-    .shift-task .shift-header { border-left: 4px solid #ec4899; }
-    .shift-holiday .shift-header { border-left: 4px solid #eab308; }
-    .shift-body { padding: 0 18px 12px; }
-
-    .employee-row { padding: 8px 12px; margin: 4px 0; background: var(--row-bg); border-radius: 8px; font-size: 0.88rem; display: flex; align-items: center; gap: 10px; }
-    .employee-row.called-in { border-left: 3px solid #ef4444; background: var(--called-in-bg); }
-    .emp-name { flex: 1; }
-    .emp-time { font-size: 0.75rem; color: var(--muted2); background: var(--card-bg); padding: 2px 8px; border-radius: 4px; }
-    .called-in-badge { font-size: 0.65rem; background: #991b1b; color: #fca5a5; padding: 2px 6px; border-radius: 4px; }
-    .employee-row.is-incharge { border-left: 3px solid #f59e0b; background: var(--incharge-bg); }
-    .employee-row.called-in.is-incharge { border-left: 3px solid #f59e0b; background: var(--called-incharge-bg); }
-    .incharge-badge { font-size: 0.65rem; background: #854d0e; color: #fef3c7; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-    .shift-edit-btn { font-size: 0.65rem; background: var(--edit-btn-bg); color: var(--muted); padding: 2px 8px; border-radius: 4px; cursor: pointer; border: 1px solid var(--border2); transition: all 0.2s; }
-    .shift-edit-btn:hover { background: var(--edit-btn-hover); color: var(--text); }
-    .shift-select { background: var(--select-bg); border: 1px solid var(--accent); color: var(--text); padding: 4px 6px; border-radius: 6px; font-size: 0.78rem; cursor: pointer; }
-    .shift-select:focus { outline: none; }
-    .shift-modified { background: var(--modified-bg) !important; border: 1px dashed var(--modified-border) !important; }
-    .modified-badge { font-size: 0.6rem; background: var(--modified-badge-bg); color: var(--accent); padding: 2px 6px; border-radius: 4px; }
-
-    /* Panel (shared) */
-    .panel { background: var(--card-bg); border-radius: 12px; padding: 18px; margin-bottom: 16px; border: 1px solid var(--border); }
-    .panel h3 { color: var(--accent); margin-bottom: 14px; font-size: 1rem; }
-    .employee-chips { display: flex; flex-wrap: wrap; gap: 8px; }
-    .emp-chip { background: var(--row-bg); padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
-    .emp-chip .chip-time { font-size: 0.7rem; color: var(--muted2); }
-
-    /* Occupancy Tab */
-    .occ-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-    .occ-card { background: var(--row-bg); border-radius: 10px; padding: 16px; border: 1px solid var(--border); text-align: center; }
-    .occ-card .hotel-icon { font-size: 1.8rem; margin-bottom: 6px; }
-    .occ-card .hotel-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 10px; }
-    .occ-card input {
-      width: 80px; background: var(--input-bg); border: 1px solid var(--border2); color: var(--text);
-      padding: 8px; border-radius: 8px; font-size: 1.2rem; text-align: center; font-weight: 700;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: Inter, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.4;
+      -webkit-font-smoothing: antialiased;
     }
-    .occ-card input:focus { outline: none; border-color: var(--accent); }
-    .occ-card .pct { color: var(--muted2); font-size: 1rem; margin-left: 4px; }
-    .occ-bar { margin-top: 10px; background: var(--card-bg); border-radius: 6px; height: 8px; overflow: hidden; }
-    .occ-bar-fill { height: 100%; border-radius: 6px; transition: width 0.3s; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    svg { display: block; }
 
-    .save-btn {
-      margin-top: 14px; width: 100%; padding: 10px; background: var(--accent-bg); color: white;
-      border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.2s;
-    }
-    .save-btn:hover { background: var(--accent-hover); }
-    .save-msg { text-align: center; color: #22c55e; font-size: 0.8rem; margin-top: 8px; display: none; }
+    .app { max-width: 560px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; background: var(--bg); }
+    @media (min-width: 600px) { .app { border-left: 1px solid var(--line); border-right: 1px solid var(--line); } }
 
-    .ic-current { margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
-    .ic-current strong { color: #f59e0b; }
+    /* App bar */
+    .appbar { display: flex; align-items: center; gap: 6px; padding: 10px 12px 10px 8px; position: sticky; top: 0; z-index: 20; background: var(--bg); }
+    .icon-btn { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; color: var(--text-2); position: relative; }
+    .icon-btn:hover { background: var(--surface); }
+    .wordmark { font-weight: 700; font-size: 21px; letter-spacing: -0.5px; margin-left: 2px; flex: 1; white-space: nowrap; }
+    .wordmark span { color: var(--blue); }
+    .bell { border: 1px solid var(--line); width: 36px; height: 36px; }
+    .bell .dot { position: absolute; top: 6px; right: 7px; width: 8px; height: 8px; background: var(--red); border-radius: 50%; border: 2px solid var(--bg); display: none; }
+    .bell.has-alert .dot { display: block; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1d2125; color: #fff; font-weight: 600; font-size: 13px; display: grid; place-items: center; margin-left: 4px; }
+    @media (prefers-color-scheme: dark) { .avatar { background: #eceef1; color: #121417; } }
 
-    .loading { text-align: center; padding: 60px 20px; color: var(--muted2); }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--spinner-border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .error-msg { text-align: center; padding: 40px; color: #f87171; background: var(--error-bg); border-radius: 12px; margin: 20px; }
-    .empty-msg { text-align: center; padding: 30px; color: var(--muted2); font-size: 0.9rem; }
-    .refresh-info { text-align: center; padding: 8px; font-size: 0.7rem; color: var(--border2); }
-    .live-dot { display: inline-block; width: 6px; height: 6px; background: #22c55e; border-radius: 50%; margin-right: 4px; animation: pulse 2s infinite; }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 1px solid var(--line); overflow-x: auto; scrollbar-width: none; position: sticky; top: 60px; z-index: 19; background: var(--bg); }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 10px 13px; color: var(--muted); font-weight: 500; font-size: 15px; position: relative; white-space: nowrap; }
+    .tab .num { width: 22px; height: 22px; border-radius: 50%; background: var(--surface); color: var(--text-2); font-size: 12px; font-weight: 600; display: grid; place-items: center; }
+    .tab.active { color: var(--text); font-weight: 600; }
+    .tab.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; background: var(--blue); border-radius: 2px; }
+    .tab.active .num { background: var(--blue); color: #fff; }
+    .tab .num.ok { background: var(--green); color: #fff; }
+    .tab .num.warn { background: var(--red); color: #fff; }
 
-    @media (max-width: 600px) {
-      .header h1 { font-size: 1.1rem; }
-      .date-nav button { padding: 6px 10px; font-size: 0.85rem; }
-      .date-display { font-size: 0.95rem; min-width: 140px; }
-      .stats-bar { gap: 8px; }
-      .stat { padding: 4px 10px; }
-      .stat .value { font-size: 1.1rem; }
-      .occ-grid { grid-template-columns: 1fr; }
-      .tabs { gap: 4px; padding: 10px 10px; }
-      .tab { padding: 6px 10px; font-size: 0.78rem; }
-    }
+    main { flex: 1; padding: 16px 16px 180px; }
+    .view[hidden] { display: none; }
+
+    /* Calendar strip */
+    .cal { background: var(--surface); border-radius: 10px; padding: 8px 8px 12px; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; padding: 0 2px 6px; }
+    .cal-title { font-size: 15px; color: var(--text-2); font-weight: 500; }
+    .cal-nav { width: 34px; height: 34px; border-radius: 6px; background: var(--bg); border: 1px solid var(--line); display: grid; place-items: center; color: var(--muted); }
+    .cal-nav:disabled { opacity: .45; cursor: default; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); row-gap: 6px; text-align: center; }
+    .cal-dow { font-size: 13px; color: var(--muted); padding: 8px 0 4px; }
+    .cal-day { justify-self: center; width: 40px; height: 40px; border-radius: 50%; font-size: 16px; font-weight: 600; color: var(--text); position: relative; display: grid; place-items: center; }
+    .cal-day:hover:not(:disabled) { background: var(--bg); }
+    .cal-day:disabled { color: var(--faint); font-weight: 500; cursor: default; }
+    .cal-day.today:not(.selected) { background: var(--line); }
+    .cal-day.selected { box-shadow: inset 0 0 0 1.5px var(--blue); color: var(--blue); background: var(--bg); }
+    .cal-day .gap-dot { position: absolute; bottom: 3px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--red); }
+
+    /* Panels & tiles */
+    .panel { background: var(--surface); border-radius: 10px; padding: 0 8px 8px; margin-top: 14px; }
+    .panel-head { font-size: 14px; color: var(--muted); text-align: center; padding: 12px 8px 10px; }
+    .panel-head strong { color: var(--text-2); font-weight: 500; }
+    .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .tile { background: var(--tile); border: 1px solid var(--line-strong); border-radius: 4px; padding: 12px 10px 10px; min-height: 64px; min-width: 0; }
+    .tile.wide { grid-column: 1 / -1; }
+    .tile-title { text-align: center; font-weight: 600; font-size: 16px; }
+    .tile-sub { text-align: center; font-size: 13px; color: var(--muted); margin-top: 1px; }
+    .tile-sub.warn { color: var(--red); font-weight: 500; }
+    .people { list-style: none; margin-top: 10px; border-top: 1px solid var(--line); padding-top: 6px; }
+    .person { display: flex; align-items: center; gap: 6px; width: 100%; text-align: left; padding: 5px 2px; font-size: 14px; color: var(--text); border-radius: 4px; }
+    .person:hover { background: var(--surface); }
+    .person .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tag { font-size: 11px; font-weight: 600; padding: 1px 6px; border-radius: 3px; white-space: nowrap; letter-spacing: .1px; }
+    .tag.ic { background: #fff4dc; color: #8a5a00; }
+    .tag.call { background: var(--red-soft); color: var(--red); }
+    .tag.mod { background: var(--blue-soft); color: var(--blue); }
+    .tag.po { background: var(--c-off-bg); color: var(--c-off); }
+    @media (prefers-color-scheme: dark) { .tag.ic { background: #3a2f17; color: #f0c56a; } }
+    .person.me .nm { font-weight: 700; }
+
+    .rows { background: var(--tile); border: 1px solid var(--line-strong); border-radius: 4px; }
+    .row { display: flex; align-items: baseline; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
+    .row:first-child { border-top: 0; }
+    .row-label { font-weight: 600; font-size: 14px; min-width: 104px; }
+    .row-val { flex: 1; font-size: 14px; color: var(--text-2); }
+    .row-val .person { display: inline; padding: 0; }
+    .row-count { font-size: 13px; color: var(--muted); }
+
+    .bar { height: 4px; background: var(--surface); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+    .bar > i { display: block; height: 100%; background: var(--green); }
+
+    .section-label { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 22px 2px 8px; }
+    .empty { text-align: center; color: var(--muted); padding: 28px 12px; font-size: 14px; }
+    .banner { margin-top: 12px; padding: 10px 12px; border-radius: 6px; font-size: 14px; background: #fff7e6; color: #7a5300; border: 1px solid #f3dfb3; }
+    @media (prefers-color-scheme: dark) { .banner { background: #2f2717; color: #f0c56a; border-color: #4a3c1d; } }
+
+    /* Week table */
+    .week-wrap { overflow-x: auto; margin-top: 14px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--tile); }
+    table.week { border-collapse: collapse; width: 100%; font-size: 13px; }
+    .week th, .week td { padding: 0; text-align: center; border-bottom: 1px solid var(--line); }
+    .week thead th { padding: 8px 2px; font-weight: 500; color: var(--muted); font-size: 12px; position: sticky; top: 0; background: var(--tile); }
+    .week thead th b { display: block; color: var(--text); font-size: 15px; font-weight: 600; }
+    .week thead th.is-sel b { color: var(--blue); }
+    .week th.name { text-align: left; padding: 6px 10px; font-weight: 500; white-space: nowrap; position: sticky; left: 0; background: var(--tile); color: var(--text); font-size: 13px; min-width: 112px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
+    .week tr.me th.name { font-weight: 700; }
+    .week tr.me td, .week tr.me th { background: var(--blue-soft); }
+    .week td { padding: 5px 2px; min-width: 40px; }
+    .week tfoot td, .week tfoot th { color: var(--muted); font-size: 12px; padding: 6px 2px; border-bottom: 0; }
+    .chip { display: inline-grid; place-items: center; min-width: 30px; height: 24px; padding: 0 4px; border-radius: 4px; font-weight: 600; font-size: 12px; position: relative; }
+    .chip.called::after { content: ""; position: absolute; top: -2px; right: -2px; width: 7px; height: 7px; background: var(--red); border-radius: 50%; border: 1.5px solid var(--tile); }
+    .k-M { color: var(--c-M); background: var(--c-M-bg); }
+    .k-B { color: var(--c-B); background: var(--c-B-bg); }
+    .k-E { color: var(--c-E); background: var(--c-E-bg); }
+    .k-N { color: var(--c-N); background: var(--c-N-bg); }
+    .k-off { color: var(--c-off); background: var(--c-off-bg); }
+    .k-leave { color: var(--c-leave); background: var(--c-leave-bg); }
+    .k-task { color: var(--c-task); background: var(--c-task-bg); }
+    .legend { display: flex; flex-wrap: wrap; gap: 6px 12px; margin-top: 10px; font-size: 12px; color: var(--muted); }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+    /* On duty */
+    .clock { text-align: center; padding: 18px 0 4px; }
+    .clock .t { font-size: 40px; font-weight: 600; letter-spacing: -1px; }
+    .clock .s { color: var(--muted); font-size: 14px; }
+    .duty-row { display: flex; align-items: center; gap: 12px; padding: 12px; border-top: 1px solid var(--line); }
+    .duty-row:first-child { border-top: 0; }
+    .initials { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 600; flex: none; }
+    .duty-row .who { flex: 1; min-width: 0; }
+    .duty-row .who b { display: block; font-weight: 600; font-size: 15px; }
+    .duty-row .who small { color: var(--muted); font-size: 13px; }
+
+    /* Me */
+    .me-pick { display: flex; gap: 8px; align-items: center; margin-top: 4px; }
+    select.input, input.input { flex: 1; font: inherit; font-size: 15px; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--tile); color: var(--text); }
+    .stat-tile .big { text-align: center; font-size: 26px; font-weight: 700; letter-spacing: -.5px; margin-top: 2px; }
+    .day-row { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--line); }
+    .day-row:first-child { border-top: 0; }
+    .day-row .d { width: 44px; text-align: center; flex: none; }
+    .day-row .d small { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+    .day-row .d b { font-size: 18px; font-weight: 600; }
+    .day-row.today .d b { color: var(--blue); }
+    .day-row .what { flex: 1; font-size: 15px; }
+    .day-row .what small { display: block; color: var(--muted); font-size: 13px; }
+
+    .file-row { display: flex; align-items: center; gap: 4px; padding: 10px 8px 10px 12px; border-top: 1px solid var(--line); }
+    .file-row:first-child { border-top: 0; }
+    .file-main { flex: 1; min-width: 0; font-size: 14px; }
+    .file-main b { font-weight: 600; word-break: break-word; }
+    .file-main small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 2px; }
+    .file-row .link-btn { width: 36px; height: 36px; justify-content: center; border-radius: 6px; }
+    .file-row .link-btn:hover { background: var(--surface); }
+    button.chip { border: 0; cursor: pointer; font: inherit; font-weight: 600; font-size: 12px; }
+    button.chip:hover { box-shadow: inset 0 0 0 1px currentColor; }
+
+    /* Bottom bar */
+    .bottombar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; background: var(--bg); box-shadow: var(--shadow-bar); }
+    .bottombar-inner { max-width: 560px; margin: 0 auto; padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    .bb-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 2px; }
+    .bb-line + .bb-line { margin-top: 2px; }
+    .bb-main { font-weight: 600; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bb-sub { color: var(--muted); font-size: 14px; }
+    .bb-strong { font-weight: 700; font-size: 16px; }
+    .link-btn { display: inline-flex; align-items: center; gap: 5px; color: var(--text-2); font-size: 14px; padding: 4px 2px; flex: none; }
+    .link-btn:hover { color: var(--blue); }
+    .bb-actions { display: flex; gap: 8px; margin-top: 10px; }
+    .sq-btn { width: 46px; height: 44px; border-radius: 6px; background: var(--surface); border: 1px solid var(--line); display: grid; place-items: center; color: var(--text-2); flex: none; }
+    .primary { flex: 1; height: 44px; border-radius: 6px; background: var(--blue); color: #fff; font-weight: 600; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .primary:hover { background: var(--blue-press); }
+    .primary:disabled { opacity: .5; }
+
+    /* Sheet */
+    .scrim { position: fixed; inset: 0; background: rgba(16, 20, 26, .38); z-index: 40; opacity: 0; pointer-events: none; transition: opacity .18s; }
+    .scrim.open { opacity: 1; pointer-events: auto; }
+    .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 41; transform: translateY(100%); transition: transform .22s ease; pointer-events: none; }
+    .sheet.open { transform: none; pointer-events: auto; }
+    .sheet-inner { max-width: 560px; margin: 0 auto; background: var(--bg); border-radius: 14px 14px 0 0; padding: 8px 16px calc(16px + env(safe-area-inset-bottom)); max-height: 80vh; overflow-y: auto; }
+    .grabber { width: 36px; height: 4px; background: var(--line-strong); border-radius: 2px; margin: 4px auto 12px; }
+    .sheet h2 { font-size: 17px; font-weight: 600; }
+    .sheet p.hint { color: var(--muted); font-size: 13px; margin-top: 2px; }
+    .opt-list { margin-top: 12px; border: 1px solid var(--line-strong); border-radius: 6px; }
+    .opt { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px; border-top: 1px solid var(--line); font-size: 15px; }
+    .opt:first-child { border-top: 0; }
+    .opt:hover { background: var(--surface); }
+    .opt .radio { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid var(--line-strong); flex: none; }
+    .opt.on .radio { border: 5px solid var(--blue); }
+    .opt small { margin-left: auto; color: var(--muted); font-size: 13px; }
+    .sheet-actions { display: flex; gap: 8px; margin-top: 14px; }
+    .ghost { flex: 1; height: 44px; border-radius: 6px; border: 1px solid var(--line-strong); font-weight: 500; }
+
+    .toast { position: fixed; left: 50%; bottom: 150px; transform: translateX(-50%) translateY(10px); background: #1d2125; color: #fff; padding: 9px 14px; border-radius: 6px; font-size: 14px; z-index: 50; opacity: 0; transition: all .2s; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateX(-50%); }
+
+    .skeleton { height: 120px; border-radius: 10px; background: var(--surface); margin-top: 14px; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 50% { opacity: .55; } }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+    .person .tag { flex: none; }
+    @media (max-width: 420px) { .tab { padding: 12px 6px 13px; gap: 6px; font-size: 14px; } }
+    @media (max-width: 400px) { .person .tag { font-size: 10px; padding: 1px 4px; } .person { font-size: 13.5px; } }
+    @media (max-width: 340px) { .tiles { grid-template-columns: minmax(0, 1fr); } .tab { padding: 12px 8px; font-size: 14px; } }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>Cluster IT Support - Daily Roster</h1>
-    <div class="date-nav">
-      <button id="prevBtn" onclick="changeDate(-1)">&#9664;</button>
-      <div class="date-display">
-        <div class="day-name" id="dayName"></div>
-        <div id="dateText"></div>
-      </div>
-      <button id="nextBtn" onclick="changeDate(1)">&#9654;</button>
-      <button class="today-btn" onclick="goToday()">Today</button>
-    </div>
+<div class="app">
+  <header class="appbar">
+    <button class="icon-btn" id="menuBtn" aria-label="Manage rosters">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+    <div class="wordmark">cluster<span>it</span></div>
+    <button class="icon-btn bell" id="bellBtn" aria-label="Coverage alerts">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span class="dot"></span>
+    </button>
+    <button class="avatar" id="avatarBtn" aria-label="Choose who you are">?</button>
+    <button class="icon-btn" id="moreBtn" aria-label="More">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+    </button>
+  </header>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-view="day" role="tab"><span class="num" id="numDay">1</span>Roster</button>
+    <button class="tab" data-view="week" role="tab"><span class="num"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>Week</button>
+    <button class="tab" data-view="duty" role="tab"><span class="num" id="numDuty">–</span>On duty</button>
+    <button class="tab" data-view="me" role="tab"><span class="num"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg></span>Me</button>
+  </nav>
+
+  <main>
+    <section class="view" id="view-day">
+      <div class="cal" id="calDay"></div>
+      <div id="dayBody"><div class="skeleton"></div></div>
+    </section>
+
+    <section class="view" id="view-week" hidden>
+      <div class="cal" id="calWeek"></div>
+      <div id="weekBody"><div class="skeleton"></div></div>
+    </section>
+
+    <section class="view" id="view-duty" hidden>
+      <div id="dutyBody"><div class="skeleton"></div></div>
+    </section>
+
+    <section class="view" id="view-me" hidden>
+      <div id="meBody"><div class="skeleton"></div></div>
+    </section>
+  </main>
+
+  <div class="bottombar">
+    <div class="bottombar-inner" id="bottombar"></div>
   </div>
+</div>
 
-  <div class="eid-banner" id="eidBanner">&#127769;&#10024; Eid Mubarak! &#10024;&#127769;</div>
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="sheet-inner" id="sheetInner"></div></div>
+<div class="toast" id="toast"></div>
 
-  <div class="tabs">
-    <button class="tab active" data-view="roster" onclick="switchView('roster')">Roster</button>
-    <button class="tab" data-view="office" onclick="switchView('office')">In Office</button>
-    <button class="tab" data-view="occupancy" onclick="switchView('occupancy')">Occupancy</button>
+<script>
+(() => {
+  const DOW = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const WINDOWS = { M: '08:00 – 17:00', B: '12:00 – 21:00', E: '15:00 – 23:00', N: '23:00 – 08:00' };
 
-    <button class="tab" data-view="salary" onclick="switchView('salary')">Salary</button>
-  </div>
+  const state = {
+    view: 'day',
+    meta: null,
+    today: null,
+    selected: null,
+    stripStart: null,
+    day: null,
+    strip: null,
+    me: load('roster.me') || '',
+    pin: sessionLoad('roster.pin') || ''
+  };
 
-  <div class="stats-bar" id="statsBar"></div>
-  <div class="content" id="content">
-    <div class="loading"><div class="spinner"></div>Loading...</div>
-  </div>
-  <div class="refresh-info"><span class="live-dot"></span> Auto-refreshes every 5 minutes</div>
+  // ---------- utils ----------
+  function load(k) { try { return localStorage.getItem(k); } catch { return null; } }
+  function save(k, v) { try { localStorage.setItem(k, v); } catch {} }
+  function sessionLoad(k) { try { return sessionStorage.getItem(k); } catch { return null; } }
+  function sessionSave(k, v) { try { sessionStorage.setItem(k, v); } catch {} }
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const plain = label => String(label || '').replace(/^[^\p{L}\p{N}]+/u, '').trim();
+  const toUTC = k => { const [y, m, d] = k.split('-').map(Number); return new Date(Date.UTC(y, m - 1, d)); };
+  const toKey = d => d.toISOString().slice(0, 10);
+  const addDays = (k, n) => { const d = toUTC(k); d.setUTCDate(d.getUTCDate() + n); return toKey(d); };
+  const dow = k => toUTC(k).getUTCDay();
+  const dnum = k => toUTC(k).getUTCDate();
+  const mon = k => MONTHS[toUTC(k).getUTCMonth()];
+  const sundayOf = k => addDays(k, -dow(k));
+  const initials = n => n.split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0].toUpperCase()).join('');
+  const sameName = (a, b) => norm(a) === norm(b);
+  const norm = n => String(n || '').toLowerCase().replace(/[,.]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
 
-  <script>
-    let currentDate = new Date();
-    let availableDates = [];
-    let currentIndex = -1;
-    let currentView = 'roster';
-    let currentRosterData = null;
-    let currentDailyData = { occupancy: {}, inCharge: {}, shiftOverrides: {} };
+  function kind(code) {
+    if (['M', 'B', 'E', 'N'].includes(code)) return code;
+    if (['T', 'TR'].includes(code)) return 'task';
+    if (['OFF', 'X', 'Z'].includes(code)) return 'off';
+    return 'leave';
+  }
 
-    const hotels = [
-      { key: 'Fairmont', name: 'Fairmont Hotel', icon: '🏨' },
-      { key: 'Raffles', name: 'Raffles Hotel', icon: '🏨' },
-      { key: 'SwissMakkah', name: 'Swiss Makkah Hotel', icon: '🏨' },
-      { key: 'SwissAlMaqam', name: 'Swiss Al Maqam Hotel', icon: '🏨' }
-    ];
+  function rangeLabel(a, b) {
+    const ya = toUTC(a).getUTCFullYear(), yb = toUTC(b).getUTCFullYear();
+    if (mon(a) === mon(b)) return `${mon(a)} ${dnum(a)}–${dnum(b)}, ${yb}`;
+    return `${mon(a)} ${dnum(a)} – ${mon(b)} ${dnum(b)}, ${ya === yb ? yb : ''}`.replace(/, $/, '');
+  }
 
-    function formatDateParam(d) {
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  async function api(path, opts = {}) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (state.pin) headers['x-admin-pin'] = state.pin;
+    const res = await fetch(path, { ...opts, headers });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) { const e = new Error(body.error || res.statusText); e.status = res.status; throw e; }
+    return body;
+  }
+
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast.t);
+    toast.t = setTimeout(() => t.classList.remove('show'), 1800);
+  }
+
+  // ---------- sheet ----------
+  function openSheet(html, onMount) {
+    $('sheetInner').innerHTML = `<div class="grabber"></div>${html}`;
+    $('scrim').classList.add('open');
+    $('sheet').classList.add('open');
+    onMount && onMount($('sheetInner'));
+  }
+  function closeSheet() { $('scrim').classList.remove('open'); $('sheet').classList.remove('open'); }
+  $('scrim').onclick = closeSheet;
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') return closeSheet();
+    if (e.target.matches('input, select, textarea') || $('sheet').classList.contains('open')) return;
+    if (state.view === 'day' && e.key === 'ArrowLeft') selectDate(addDays(state.selected, -1));
+    if (state.view === 'day' && e.key === 'ArrowRight') selectDate(addDays(state.selected, 1));
+  });
+
+  // ---------- saving (handles PIN) ----------
+  async function saveDaily(fields) {
+    try {
+      const r = await api('/api/daily-data', { method: 'POST', body: JSON.stringify({ date: state.selected, ...fields }) });
+      state.day.daily = r.data;
+      return true;
+    } catch (e) {
+      if (e.status === 401) { askPin(() => saveDaily(fields).then(ok => ok && render())); return false; }
+      toast(e.message);
+      return false;
     }
+  }
 
-    function switchView(view) {
-      currentView = view;
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      document.querySelector(`[data-view="${view}"]`).classList.add('active');
-      if (view === 'roster') loadRoster();
-      else if (view === 'office') loadOfficeNow();
-      else if (view === 'occupancy') loadOccupancy();
+  function askPin(retry) {
+    openSheet(`
+      <h2>Enter admin PIN</h2>
+      <p class="hint">Changes to the roster need the team PIN.</p>
+      <div class="me-pick" style="margin-top:12px"><input class="input" id="pinInput" type="password" inputmode="numeric" autocomplete="off"></div>
+      <div class="sheet-actions"><button class="ghost" id="pinCancel">Cancel</button><button class="primary" id="pinOk">Unlock</button></div>`,
+      el => {
+        const inp = el.querySelector('#pinInput');
+        inp.focus();
+        const go = () => { state.pin = inp.value.trim(); sessionSave('roster.pin', state.pin); closeSheet(); retry(); };
+        el.querySelector('#pinOk').onclick = go;
+        inp.onkeydown = e => { if (e.key === 'Enter') go(); };
+        el.querySelector('#pinCancel').onclick = closeSheet;
+      });
+  }
 
-      else if (view === 'salary') loadSalary();
+  // ---------- data shaping ----------
+  function effectiveEntries() {
+    const d = state.day;
+    const overrides = d.daily.shiftOverrides || {};
+    const labelOf = Object.fromEntries(d.shiftCodes.map(s => [s.code, s.label]));
+    return d.entries.map(e => {
+      const code = overrides[e.name];
+      return code && labelOf[code] ? { ...e, code, label: labelOf[code], rawTime: null, modified: true, originalCode: e.code } : e;
+    });
+  }
+
+  function groupEntries(entries) {
+    const groups = {};
+    entries.forEach(e => (groups[e.label] ||= []).push(e));
+    return state.day.shiftOrder.filter(l => groups[l]).map(label => ({ label, code: groups[label][0].code, employees: groups[label] }));
+  }
+
+  function pickInCharge(names, override) {
+    if (override && names.includes(override)) return { name: override, manual: true };
+    for (const p of state.day.inChargePriority) {
+      const hit = names.find(n => sameName(n, p));
+      if (hit) return { name: hit, manual: false };
     }
+    return null;
+  }
 
-    function changeDate(delta) {
-      const newIdx = currentIndex + delta;
-      if (availableDates.length > 0 && newIdx >= 0 && newIdx < availableDates.length) {
-        currentIndex = newIdx;
-        currentDate = new Date(availableDates[newIdx] + 'T12:00:00');
-        currentRosterData = null;
-        switchView(currentView);
+  function dayModel() {
+    const entries = effectiveEntries();
+    const groups = groupEntries(entries);
+    const working = groups.filter(g => ['M', 'B', 'E', 'N'].includes(g.code));
+    const other = groups.filter(g => !['M', 'B', 'E', 'N'].includes(g.code));
+    const icMap = state.day.daily.inCharge || {};
+    const ic = {};
+    working.forEach(g => { ic[g.label] = pickInCharge(g.employees.map(e => e.name), icMap[g.label]); });
+    const counts = { M: 0, B: 0, E: 0, N: 0 };
+    entries.forEach(e => { if (counts[e.code] !== undefined) counts[e.code]++; });
+    const gaps = state.day.notFound ? [] : state.day.requiredShifts.filter(c => !counts[c]);
+    return { entries, groups, working, other, ic, gaps, workingCount: entries.filter(e => ['M', 'B', 'E', 'N', 'T', 'TR'].includes(e.code)).length };
+  }
+
+  // ---------- calendar strip ----------
+  function renderCal(el, { title, days, canPrev, canNext, onPrev, onNext, onPick, selectable = true }) {
+    const avail = new Set(state.day?.availableDates || state.meta?.availableDates || []);
+    const gapDays = new Set((state.strip?.days || []).filter((d, i) => state.strip.coverage[i].gaps.length && d.inRoster).map(d => d.key));
+    let html = `<div class="cal-head">
+      <button class="cal-nav" data-nav="-1" aria-label="Previous" ${canPrev ? '' : 'disabled'}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+      <div class="cal-title">${esc(title)}</div>
+      <button class="cal-nav" data-nav="1" aria-label="Next" ${canNext ? '' : 'disabled'}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+    </div><div class="cal-grid">${DOW.map(d => `<div class="cal-dow">${d}</div>`).join('')}`;
+    days.forEach(k => {
+      const cls = ['cal-day'];
+      if (k === state.today) cls.push('today');
+      if (selectable && k === state.selected) cls.push('selected');
+      const disabled = !avail.has(k);
+      html += `<button class="${cls.join(' ')}" data-key="${k}" ${disabled ? 'disabled' : ''} aria-label="${k}">${dnum(k)}${gapDays.has(k) ? '<span class="gap-dot"></span>' : ''}</button>`;
+    });
+    el.innerHTML = html + '</div>';
+    el.querySelector('[data-nav="-1"]').onclick = onPrev;
+    el.querySelector('[data-nav="1"]').onclick = onNext;
+    el.querySelectorAll('.cal-day:not(:disabled)').forEach(b => b.onclick = () => onPick(b.dataset.key));
+  }
+
+  function stripDays(n = 14) { return Array.from({ length: n }, (_, i) => addDays(state.stripStart, i)); }
+  function rosterRange() { const a = state.day?.availableDates || []; return a.length ? [a[0], a[a.length - 1]] : [state.today, state.today]; }
+
+  // ---------- views ----------
+  function renderDay() {
+    const [first, last] = rosterRange();
+    const days = stripDays(14);
+    renderCal($('calDay'), {
+      title: rangeLabel(days[0], days[13]),
+      days,
+      canPrev: days[0] > first, canNext: days[13] < last,
+      onPrev: () => moveStrip(-7), onNext: () => moveStrip(7),
+      onPick: selectDate
+    });
+
+    const d = state.day;
+    const body = $('dayBody');
+    if (d.notFound) {
+      body.innerHTML = `<div class="panel"><div class="empty">${esc(d.dateFormatted)} is not in the current roster.<br>Roster covers ${esc(rangeLabel(first, last))}.</div></div>`;
+      return;
+    }
+    const m = dayModel();
+    let html = '';
+    if (d.isEid) html += `<div class="banner">Eid Mubarak — ${esc(d.dayName)}, ${esc(d.dateFormatted)}</div>`;
+    if (m.gaps.length) html += `<div class="banner">No one scheduled on ${m.gaps.map(c => esc(plain(d.shiftCodes.find(s => s.code === c).label))).join(', ')}.</div>`;
+
+    html += `<div class="panel"><div class="panel-head">Timezone: Asia/Riyadh · <strong>${esc(d.dayName)}, ${esc(d.dateFormatted)}</strong></div><div class="tiles">`;
+    const shownCodes = new Set(m.working.map(g => g.code));
+    ['M', 'B', 'E', 'N'].forEach(code => {
+      const g = m.working.find(x => x.code === code);
+      const label = plain(d.shiftCodes.find(s => s.code === code).label);
+      if (!g) {
+        if (!d.requiredShifts.includes(code)) return;
+        html += `<div class="tile"><div class="tile-title">${esc(label)}</div><div class="tile-sub warn">Nobody scheduled</div></div>`;
+        return;
       }
-    }
-
-    function goToday() { currentDate = new Date(); currentRosterData = null; syncIndex(); switchView(currentView); }
-
-    function getShiftClass(label) {
-      if (label.includes('Morning')) return 'shift-morning';
-      if (label.includes('Between')) return 'shift-between';
-      if (label.includes('Evening')) return 'shift-evening';
-      if (label.includes('Night')) return 'shift-night';
-      if (label.includes('Day Off') || label.includes('Pending') || label.includes('Compensation')) return 'shift-off';
-      if (label.includes('Task') || label.includes('Training')) return 'shift-task';
-      if (label.includes('Holiday') || label.includes('Eid')) return 'shift-holiday';
-      if (label.includes('Leave') || label.includes('Sick') || label.includes('Vacation')) return 'shift-leave';
-      return 'shift-off';
-    }
-
-    async function loadDailyData(dateStr) {
-      try {
-        const res = await fetch(`/api/daily-data?date=${dateStr}`);
-        currentDailyData = await res.json();
-        if (!currentDailyData.occupancy) currentDailyData.occupancy = {};
-
-        if (!currentDailyData.inCharge) currentDailyData.inCharge = {};
-      } catch (e) {
-        currentDailyData = { occupancy: {}, inCharge: {}, shiftOverrides: {} };
-      }
-    }
-
-    async function saveField(field, data) {
-      const dateStr = currentRosterData?.date;
-      if (!dateStr) return;
-      currentDailyData[field] = data;
-      try {
-        await fetch('/api/daily-data', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ date: dateStr, ...currentDailyData })
-        });
-        const msg = document.getElementById('saveMsg');
-        if (msg) { msg.style.display = 'block'; setTimeout(() => msg.style.display = 'none', 2000); }
-      } catch (e) { console.error('Save failed:', e); }
-    }
-
-    function saveOccupancy() {
-      const occ = {};
-      hotels.forEach(h => {
-        const input = document.getElementById('occ-' + h.key);
-        if (input && input.value) occ[h.key] = parseInt(input.value) || 0;
+      const ic = m.ic[g.label];
+      html += `<div class="tile"><div class="tile-title">${esc(label)}</div><div class="tile-sub">${WINDOWS[code]} · ${g.employees.length}</div><ul class="people">`;
+      g.employees.forEach(e => {
+        const tags = [];
+        if (ic && ic.name === e.name) tags.push('<span class="tag ic">In-charge</span>');
+        if (e.calledIn) tags.push('<span class="tag call">Called in</span>');
+        if (e.modified) tags.push('<span class="tag mod">Edited</span>');
+        html += `<li><button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}"><span class="nm">${esc(e.name)}${e.rawTime ? ` <small style="color:var(--muted)">${esc(e.rawTime)}</small>` : ''}</span>${tags.join('')}</button></li>`;
       });
-      // Update bar fills
-      hotels.forEach(h => {
-        const val = occ[h.key] || 0;
-        const fill = document.getElementById('occ-bar-' + h.key);
-        if (fill) {
-          fill.style.width = val + '%';
-          fill.style.background = val > 85 ? '#ef4444' : val > 60 ? '#f59e0b' : '#22c55e';
-        }
+      html += '</ul></div>';
+    });
+    html += '</div>';
+
+    if (m.other.length) {
+      html += `<div class="rows" style="margin-top:8px">`;
+      m.other.forEach(g => {
+        html += `<div class="row"><div class="row-label">${esc(plain(g.label))}</div><div class="row-val">${g.employees.map(e =>
+          `<button class="person${sameName(e.name, state.me) ? ' me' : ''}" data-emp="${esc(e.name)}">${esc(e.name)}${e.modified ? ' <span class="tag mod">Edited</span>' : ''}${e.pendingOff ? ' <span class="tag po">Pending off</span>' : ''}</button>`).join(', ')}</div><div class="row-count">${g.employees.length}</div></div>`;
       });
-      saveField('occupancy', occ);
+      html += '</div>';
     }
+    html += '</div>';
 
+    body.innerHTML = html;
+    body.querySelectorAll('[data-emp]').forEach(b => b.onclick = () => editShiftSheet(b.dataset.emp));
+  }
 
-    function saveInCharge() {
-      const ic = {};
-      document.querySelectorAll('.incharge-select').forEach(sel => {
-        if (sel.value) ic[sel.dataset.shift] = sel.value;
+  function renderWeek() {
+    const [first, last] = rosterRange();
+    const days = stripDays(7);
+    renderCal($('calWeek'), {
+      title: rangeLabel(days[0], days[6]),
+      days, selectable: true,
+      canPrev: days[0] > first, canNext: days[6] < last,
+      onPrev: () => moveStrip(-7), onNext: () => moveStrip(7),
+      onPick: k => { selectDate(k); switchView('day'); }
+    });
+    const w = state.strip;
+    if (!w) return;
+    const cols = w.days.slice(0, 7);
+    let html = `<div class="week-wrap"><table class="week"><thead><tr><th class="name" style="color:var(--muted);font-size:12px">Name</th>${cols.map(d =>
+      `<th class="${d.key === state.selected ? 'is-sel' : ''}">${DOW[dow(d.key)]}<b>${dnum(d.key)}</b></th>`).join('')}</tr></thead><tbody>`;
+    const rows = [...w.employees].sort((a, b) => (sameName(b.name, state.me) ? 1 : 0) - (sameName(a.name, state.me) ? 1 : 0));
+    rows.forEach(emp => {
+      html += `<tr class="${sameName(emp.name, state.me) ? 'me' : ''}"><th class="name" title="${esc(emp.name)}">${esc(emp.name)}</th>`;
+      emp.shifts.slice(0, 7).forEach((s, i) => {
+        if (!cols[i].inRoster) { html += '<td style="color:var(--faint)">·</td>'; return; }
+        html += `<td><button class="chip k-${s ? kind(s.code) : 'off'}${s && s.calledIn ? ' called' : ''}" data-edit-key="${cols[i].key}" data-edit-emp="${esc(emp.name)}" title="${s ? esc(plain(s.label)) + (s.calledIn ? ' — called in' : '') : 'Empty'} · tap to change"${s ? '' : ' style="background:none;color:var(--faint)"'}>${s ? esc(s.code) : '–'}</button></td>`;
       });
-      saveField('inCharge', ic).then(() => renderRoster());
-    }
+      html += '</tr>';
+    });
+    html += `</tbody><tfoot><tr><th class="name" style="color:var(--muted);font-weight:500;font-size:12px">M / E / N</th>${cols.map((d, i) => {
+      const c = w.coverage[i];
+      return `<td style="${c.gaps.length && d.inRoster ? 'color:var(--red);font-weight:600' : ''}">${d.inRoster ? `${c.counts.M}/${c.counts.E}/${c.counts.N}` : ''}</td>`;
+    }).join('')}</tr></tfoot></table></div>
+    <p style="color:var(--muted);font-size:12px;margin-top:8px">Tap any cell to change that shift.</p>
+    <div class="legend">
+      <span><i class="chip k-M">M</i>Morning</span><span><i class="chip k-B">B</i>Between</span><span><i class="chip k-E">E</i>Evening</span><span><i class="chip k-N">N</i>Night</span>
+      <span><i class="chip k-off">OFF</i>Off</span><span><i class="chip k-leave">V</i>Leave</span><span><i class="chip k-M called">M</i>Called in</span>
+    </div>`;
+    $('weekBody').innerHTML = html;
+    $('weekBody').querySelectorAll('[data-edit-key]').forEach(b => b.onclick = async () => {
+      if (b.dataset.editKey !== state.selected) { state.selected = b.dataset.editKey; await loadDay(); render(); }
+      editShiftSheet(b.dataset.editEmp);
+    });
+  }
 
-    function editShift(empName) {
-      const shiftCodes = currentRosterData?.shiftCodes || [];
-      if (!shiftCodes.length) return;
-      const overrides = currentDailyData.shiftOverrides || {};
-      const currentCode = overrides[empName] || '';
-
-      // Build a popup inline
-      let opts = '<option value="">-- Original --</option>';
-      shiftCodes.forEach(s => {
-        opts += `<option value="${s.code}"${s.code === currentCode ? ' selected' : ''}>${s.label}</option>`;
-      });
-
-      const row = event.target.closest('.employee-row');
-      const existing = row.querySelector('.shift-select');
-      if (existing) { existing.remove(); return; } // toggle off
-
-      const sel = document.createElement('select');
-      sel.className = 'shift-select';
-      sel.innerHTML = opts;
-      sel.onchange = function() {
-        const val = this.value;
-        if (!currentDailyData.shiftOverrides) currentDailyData.shiftOverrides = {};
-        if (val) {
-          currentDailyData.shiftOverrides[empName] = val;
-        } else {
-          delete currentDailyData.shiftOverrides[empName];
-        }
-        saveField('shiftOverrides', currentDailyData.shiftOverrides).then(() => renderRoster());
-      };
-      row.appendChild(sel);
-      sel.focus();
-    }
-
-    async function ensureAvailableDates() {
-      if (availableDates.length > 0) return;
-      const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
-      const data = await res.json();
-      availableDates = data.availableDates || [];
-
-      if (data.notFound && availableDates.length > 0) {
-        const todayStr = formatDateParam(currentDate);
-        const future = availableDates.find(d => d >= todayStr);
-        const target = future || availableDates[availableDates.length - 1];
-        currentIndex = availableDates.indexOf(target);
-        currentDate = new Date(target + 'T12:00:00');
-      }
-
-      const curMD = formatDateParam(currentDate).slice(5);
-      currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
-      if (currentIndex === -1) currentIndex = availableDates.indexOf(formatDateParam(currentDate));
-    }
-
-    function syncIndex() {
-      const dateStr = formatDateParam(currentDate);
-      currentIndex = availableDates.indexOf(dateStr);
-      if (currentIndex === -1) {
-        const curMD = dateStr.slice(5);
-        currentIndex = availableDates.findIndex(d => d.slice(5) === curMD);
-      }
-    }
-
-    async function fetchRoster() {
-      const res = await fetch(`/api/roster?date=${formatDateParam(currentDate)}`);
-      currentRosterData = await res.json();
-      if (availableDates.length === 0) availableDates = currentRosterData.availableDates || [];
-      await loadDailyData(currentRosterData.date);
-    }
-
-    function updateNav() {
-      if (currentRosterData) {
-        document.getElementById('dayName').textContent = currentRosterData.dayName;
-        document.getElementById('dateText').textContent = currentRosterData.dateFormatted;
-        document.getElementById('eidBanner').style.display = currentRosterData.isEid ? 'block' : 'none';
-      }
-      document.getElementById('prevBtn').disabled = currentIndex <= 0;
-      document.getElementById('nextBtn').disabled = currentIndex >= availableDates.length - 1;
-    }
-
-    // ==================== ROSTER ====================
-    function renderRoster() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      const data = currentRosterData;
-      if (!data) return;
-
-      let totalWorking = 0, totalOff = 0;
-      data.shifts.forEach(s => {
-        const lbl = s.label;
-        if (['Morning','Between','Evening','Night','Task','Training'].some(w => lbl.includes(w))) totalWorking += s.employees.length;
-        else totalOff += s.employees.length;
-      });
-
-      statsBar.innerHTML = `
-        <div class="stat"><div class="value">${totalWorking}</div><div class="label">Working</div></div>
-        <div class="stat"><div class="value">${totalOff}</div><div class="label">Off / Leave</div></div>
-        <div class="stat"><div class="value">${totalWorking + totalOff}</div><div class="label">Total</div></div>`;
-
-      if (data.shifts.length === 0) { content.innerHTML = '<div class="empty-msg">No roster data found.</div>'; return; }
-
-      const overrides = currentDailyData.shiftOverrides || {};
-      const shiftCodes = data.shiftCodes || [];
-
-      // Rebuild shifts with overrides applied
-      const allEmployees = [];
-      data.shifts.forEach(shift => {
-        shift.employees.forEach(emp => {
-          allEmployees.push({ ...emp, originalLabel: shift.label });
-        });
-      });
-
-      const rebuiltShifts = {};
-      allEmployees.forEach(emp => {
-        const overrideCode = overrides[emp.name];
-        let targetLabel = emp.originalLabel;
-        if (overrideCode) {
-          const found = shiftCodes.find(s => s.code === overrideCode);
-          if (found) targetLabel = found.label;
-        }
-        if (!rebuiltShifts[targetLabel]) rebuiltShifts[targetLabel] = [];
-        rebuiltShifts[targetLabel].push({ ...emp, modified: !!overrideCode, currentLabel: targetLabel });
-      });
-
-      const shiftOrder = data.shifts.map(s => s.label);
-      shiftCodes.forEach(s => { if (!shiftOrder.includes(s.label)) shiftOrder.push(s.label); });
-
-      const workingShifts = [];
-      const savedIC = currentDailyData.inCharge || {};
-      const priority = data.inChargePriority || [];
-
-      // Auto-assign in-charge per shift based on priority (if no manual override)
-      const effectiveIC = {};
-      shiftOrder.forEach(label => {
-        const employees = rebuiltShifts[label];
-        if (!employees || employees.length === 0) return;
-        if (!['Morning','Between','Evening','Night'].some(w => label.includes(w))) return;
-        if (savedIC[label]) {
-          effectiveIC[label] = savedIC[label];
-        } else {
-          const names = employees.map(e => e.name);
-          const auto = priority.find(p => names.includes(p));
-          if (auto) effectiveIC[label] = auto;
-        }
-      });
-
-      let html = '';
-      shiftOrder.forEach(label => {
-        const employees = rebuiltShifts[label];
-        if (!employees || employees.length === 0) return;
-        const cls = getShiftClass(label);
-        const icName = effectiveIC[label] || '';
-        const isManual = !!savedIC[label];
-        if (['Morning','Between','Evening','Night'].some(w => label.includes(w))) {
-          workingShifts.push({ label, employees });
-        }
-        html += `<div class="shift-card ${cls}"><div class="shift-header">${label}<span class="count">${employees.length}</span></div><div class="shift-body">`;
-        employees.forEach(emp => {
-          const isIC = icName && emp.name === icName;
-          const ci = (emp.calledIn ? ' called-in' : '') + (isIC ? ' is-incharge' : '');
-          const modCls = emp.modified ? ' shift-modified' : '';
-          let badge = '';
-          if (isIC) badge += '<span class="incharge-badge">🔑 IN-CHARGE</span>';
-          if (emp.calledIn) badge += '<span class="called-in-badge">CALLED IN</span>';
-          if (emp.modified) badge += '<span class="modified-badge">MODIFIED</span>';
-          const time = emp.rawTime ? `<span class="emp-time">${emp.rawTime}</span>` : '';
-          const editBtn = `<span class="shift-edit-btn" onclick="editShift('${emp.name.replace(/'/g, "\\'")}')">Edit</span>`;
-          html += `<div class="employee-row${ci}${modCls}"><span class="emp-name">${emp.name}</span>${time}${badge}${editBtn}</div>`;
-        });
-        html += '</div></div>';
-      });
-
-      // In-Charge per shift section (manual override)
-      if (workingShifts.length > 0) {
-        html += '<div class="panel"><h3>🔑 In-Charge Per Shift</h3>';
-        html += '<p style="color:#64748b; font-size:0.75rem; margin-bottom:12px;">Auto-assigned by priority. Change manually if needed.</p>';
-        workingShifts.forEach(s => {
-          const current = effectiveIC[s.label] || '';
-          const isManual = !!savedIC[s.label];
-          const autoTag = !isManual && current ? ' (auto)' : '';
-          html += `<div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
-            <label style="font-size:0.85rem; color:#f59e0b; font-weight:600; min-width:120px;">${s.label}</label>
-            <select class="incharge-select" data-shift="${s.label}" onchange="saveInCharge()"
-              style="flex:1; background:#0f172a; border:1px solid #475569; color:#e2e8f0; padding:8px 10px; border-radius:8px; font-size:0.85rem;">
-              <option value="">-- Auto (Priority) --</option>`;
-          s.employees.forEach(emp => {
-            html += `<option value="${emp.name}"${emp.name === current && isManual ? ' selected' : ''}>${emp.name}</option>`;
-          });
-          html += `</select></div>`;
-        });
-        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
-      }
-
-      content.innerHTML = html;
-    }
-
-    async function loadRoster() {
-      const content = document.getElementById('content');
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading roster...</div>';
-
-      try {
-        await ensureAvailableDates();
-        syncIndex();
-        await fetchRoster();
-        updateNav();
-        renderRoster();
-      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
-    }
-
-    // ==================== IN OFFICE ====================
-    async function loadOfficeNow() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      document.getElementById('eidBanner').style.display = 'none';
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Checking...</div>';
-      statsBar.innerHTML = '';
-      try {
-        await ensureAvailableDates();
-        syncIndex();
-        updateNav();
-        const res = await fetch('/api/office-now');
-        const data = await res.json();
-        statsBar.innerHTML = `
-          <div class="stat"><div class="value">${data.employees?.length || 0}</div><div class="label">In Office</div></div>
-          <div class="stat"><div class="value">${data.time || '--:--'}</div><div class="label">Time</div></div>
-          <div class="stat"><div class="value">${(data.activeShifts||[]).join(', ')||'-'}</div><div class="label">Active</div></div>`;
-        if (!data.employees?.length) { content.innerHTML = '<div class="empty-msg">No one is currently in the office.</div>'; return; }
-        let html = '<div class="panel"><h3>Currently in Office</h3><div class="employee-chips">';
-        data.employees.forEach(emp => {
-          html += `<div class="emp-chip">${emp.name}${emp.rawTime ? `<span class="chip-time">${emp.rawTime}</span>` : ''}</div>`;
-        });
-        content.innerHTML = html + '</div></div>';
-      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
-    }
-
-    // ==================== OCCUPANCY ====================
-    async function loadOccupancy() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
-
-      try {
-        await ensureAvailableDates();
-        syncIndex();
-        await loadDailyData(formatDateParam(currentDate));
-        updateNav();
-
-        const occ = currentDailyData.occupancy || {};
-        const vals = hotels.map(h => occ[h.key] || 0);
-        const avg = vals.some(v => v > 0) ? Math.round(vals.filter(v => v > 0).reduce((a, b) => a + b, 0) / vals.filter(v => v > 0).length) : 0;
-
-        statsBar.innerHTML = `<div class="stat"><div class="value">${avg}%</div><div class="label">Avg Occupancy</div></div>`;
-
-        let html = '<div class="panel"><h3>Hotel Occupancy</h3><div class="occ-grid">';
-        hotels.forEach(h => {
-          const val = occ[h.key] || '';
-          const numVal = parseInt(val) || 0;
-          const barColor = numVal > 85 ? '#ef4444' : numVal > 60 ? '#f59e0b' : '#22c55e';
-          html += `<div class="occ-card">
-            <div class="hotel-icon">${h.icon}</div>
-            <div class="hotel-label">${h.name}</div>
-            <input type="number" id="occ-${h.key}" min="0" max="100" value="${val}" placeholder="--" oninput="saveOccupancy()">
-            <span class="pct">%</span>
-            <div class="occ-bar"><div class="occ-bar-fill" id="occ-bar-${h.key}" style="width:${numVal}%; background:${barColor};"></div></div>
-          </div>`;
+  async function renderDuty() {
+    const body = $('dutyBody');
+    try {
+      const d = await api('/api/office-now');
+      $('numDuty').textContent = d.employees.length;
+      const labels = Object.fromEntries((state.meta?.shiftCodes || []).map(s => [s.code, plain(s.label)]));
+      let html = `<div class="clock"><div class="t">${esc(d.time)}</div><div class="s">Riyadh time · ${d.employees.length} on duty</div></div>`;
+      if (!d.employees.length) html += '<div class="panel"><div class="empty">Nobody is on shift right now.</div></div>';
+      else {
+        html += '<div class="rows" style="margin-top:14px">';
+        d.employees.forEach(e => {
+          const k = kind(e.shiftCode);
+          html += `<div class="duty-row"><span class="initials k-${k}">${esc(initials(e.name))}</span><div class="who"><b>${esc(e.name)}</b><small>${esc(labels[e.shiftCode] || e.shiftCode)} · ${esc(e.rawTime || WINDOWS[e.shiftCode] || '')}</small></div>${e.calledIn ? '<span class="tag call">Called in</span>' : ''}</div>`;
         });
         html += '</div>';
-        html += '<div class="save-msg" id="saveMsg">Saved!</div></div>';
-        content.innerHTML = html;
-      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
+      }
+      body.innerHTML = html;
+    } catch (e) { body.innerHTML = `<div class="panel"><div class="empty">${esc(e.message)}</div></div>`; }
+  }
+
+  async function renderMe() {
+    const body = $('meBody');
+    const names = state.meta?.employees || [];
+    let html = `<div class="section-label" style="margin-top:4px">Who are you?</div><div class="me-pick"><select class="input" id="meSelect"><option value="">Select your name</option>${names.map(n =>
+      `<option ${sameName(n, state.me) ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`;
+    let salary = null;
+    try { salary = await api('/api/salary'); } catch {}
+    if (salary) {
+      const pct = Math.max(0, Math.min(100, 100 - salary.daysLeft / (salary.cycleLength || 30) * 100));
+      html += `<div class="panel"><div class="panel-head">Countdowns</div><div class="tiles">
+        <div class="tile stat-tile"><div class="tile-sub">Salary · ${esc(mon(salary.salaryDate))} ${dnum(salary.salaryDate)}</div><div class="big">${salary.daysLeft} ${salary.daysLeft === 1 ? 'day' : 'days'}</div><div class="bar"><i style="width:${pct}%;background:var(--blue)"></i></div></div>
+        <div class="tile stat-tile"><div class="tile-sub">Current roster ends · ${salary.roster ? `${esc(mon(salary.roster.end))} ${dnum(salary.roster.end)}` : '—'}</div><div class="big">${salary.roster ? (salary.roster.ended ? 'Ended' : `${salary.roster.daysLeft} ${salary.roster.daysLeft === 1 ? 'day' : 'days'}`) : '—'}</div></div>
+      </div></div>`;
     }
-
-
-    // ==================== SALARY ====================
-    async function loadSalary() {
-      const content = document.getElementById('content');
-      const statsBar = document.getElementById('statsBar');
-      document.getElementById('eidBanner').style.display = 'none';
-      statsBar.innerHTML = '';
+    if (state.me) {
       try {
-        await ensureAvailableDates();
-        syncIndex();
-        updateNav();
-        const res = await fetch('/api/salary');
-        const data = await res.json();
-        statsBar.innerHTML = `
-          <div class="stat"><div class="value">${data.daysLeft}</div><div class="label">Days Left</div></div>
-          <div class="stat"><div class="value">${data.salaryDate}</div><div class="label">Salary Date</div></div>`;
-        const progress = Math.max(0, Math.min(100, ((30 - data.daysLeft) / 30) * 100));
-        content.innerHTML = `<div class="panel" style="text-align:center;">
-            <h3>Salary Countdown</h3>
-            <div style="font-size:3rem; font-weight:700; color:#60a5fa; margin:20px 0;">${data.daysLeft} days</div>
-            <div style="background:#0f172a; border-radius:10px; height:20px; overflow:hidden; margin:16px 0;">
-              <div style="background:linear-gradient(90deg,#2563eb,#60a5fa); height:100%; width:${progress}%; border-radius:10px; transition:width 0.5s;"></div>
-            </div>
-            <div style="color:#94a3b8; font-size:0.85rem;">Next salary: ${data.salaryDate}</div>
-          </div>`;
-      } catch (err) { content.innerHTML = `<div class="error-msg">${err.message}</div>`; }
+        const s = await api(`/api/employee?name=${encodeURIComponent(state.me)}&days=14`);
+        html += `<div class="section-label">Your next 14 days</div><div class="rows">`;
+        s.days.forEach(d => {
+          const sh = d.shift;
+          let what;
+          if (!d.inRoster) what = '<span style="color:var(--faint)">Not in roster yet</span>';
+          else if (!sh) what = '<span style="color:var(--faint)">—</span>';
+          else what = `${esc(plain(sh.label))}${sh.calledIn ? ' <span class="tag call">Called in</span>' : ''}<small>${esc(sh.rawTime || WINDOWS[sh.code] || '')}</small>`;
+          html += `<div class="day-row${d.key === state.today ? ' today' : ''}"><div class="d"><small>${DOW[dow(d.key)]}</small><b>${dnum(d.key)}</b></div><div class="what">${what}</div>${sh ? `<span class="chip k-${kind(sh.code)}">${esc(sh.code)}</span>` : ''}</div>`;
+        });
+        html += '</div>';
+      } catch { html += '<div class="panel"><div class="empty">Couldn’t find your schedule.</div></div>'; }
     }
+    body.innerHTML = html;
+    $('meSelect').onchange = e => setMe(e.target.value);
+  }
 
-    loadRoster();
-    setInterval(() => switchView(currentView), 5 * 60 * 1000);
-  </script>
+  function setMe(name) {
+    state.me = name;
+    save('roster.me', name);
+    $('avatarBtn').textContent = name ? initials(name) : '?';
+    render();
+  }
+
+  // ---------- bottom bar ----------
+  function renderBottom() {
+    const bb = $('bottombar');
+    if (!state.day) {
+      bb.innerHTML = '<div class="bb-actions"><button class="primary" id="bbRosters">Manage rosters</button></div>';
+      $('bbRosters').onclick = rostersSheet;
+      return;
+    }
+    const todayBtn = `<button class="sq-btn" id="bbToday" aria-label="Go to today" title="Today"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 3v3M16 3v3"/><circle cx="12" cy="15" r="1.6" fill="currentColor"/></svg></button>`;
+    if (state.view === 'day' && state.day && !state.day.notFound) {
+      const m = dayModel();
+      const icList = m.working.map(g => m.ic[g.label] && `${plain(g.label)}: ${m.ic[g.label].name}`).filter(Boolean);
+      bb.innerHTML = `
+        <div class="bb-line"><div class="bb-main">${esc(state.day.dayName)}, ${esc(state.day.dateFormatted)}</div>
+          <button class="link-btn" id="bbEdit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></div>
+        <div class="bb-line"><div class="bb-sub" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">In-charge · ${esc(icList.map(s => s.split(': ')[1]).join(', ') || '—')}</div></div>
+        <div class="bb-line" style="margin-top:6px"><div class="bb-strong">Working:</div><div class="bb-strong">${m.workingCount}</div></div>
+        <div class="bb-actions">${todayBtn}<button class="primary" id="bbShare">Share on WhatsApp</button></div>`;
+      $('bbEdit').onclick = editInChargeSheet;
+      $('bbShare').onclick = share;
+    } else {
+      const label = { day: 'Roster', week: 'Week view', duty: 'On duty now', me: state.me || 'My schedule' }[state.view];
+      bb.innerHTML = `<div class="bb-line"><div class="bb-main">${esc(label)}</div><div class="bb-sub">${state.day ? esc(rangeLabel(...rosterRange())) : ''}</div></div>
+        <div class="bb-actions">${todayBtn}<button class="primary" id="bbPrimary">${state.view === 'duty' ? 'Refresh' : 'Open today’s roster'}</button></div>`;
+      $('bbPrimary').onclick = () => state.view === 'duty' ? renderDuty() : (selectDate(state.today), switchView('day'));
+    }
+    $('bbToday').onclick = () => selectDate(state.today);
+  }
+
+  // ---------- sheets ----------
+  function editShiftSheet(name) {
+    const d = state.day;
+    const orig = d.entries.find(e => e.name === name);
+    const current = (d.daily.shiftOverrides || {})[name] || '';
+    const opts = d.shiftCodes.map(s => `<button class="opt${s.code === current ? ' on' : ''}" data-code="${s.code}"><span class="radio"></span>${esc(plain(s.label))}<small>${esc(s.code)}</small></button>`).join('');
+    openSheet(`<h2>${esc(name)}</h2><p class="hint">Scheduled: ${esc(orig ? plain(orig.label) : '—')}. Pick a different shift for ${esc(d.dateFormatted)}.</p>
+      <div class="opt-list">${opts}</div>
+      <div class="sheet-actions"><button class="ghost" id="resetShift" ${current ? '' : 'disabled'}>Reset to original</button><button class="primary" id="doneShift">Done</button></div>`, el => {
+      el.querySelectorAll('[data-code]').forEach(b => b.onclick = async () => {
+        const ov = { ...(d.daily.shiftOverrides || {}) };
+        if (orig && b.dataset.code === orig.code) delete ov[name]; else ov[name] = b.dataset.code;
+        if (await saveDaily({ shiftOverrides: ov })) { closeSheet(); render(); toast('Shift updated'); }
+      });
+      el.querySelector('#resetShift').onclick = async () => {
+        const ov = { ...(d.daily.shiftOverrides || {}) };
+        delete ov[name];
+        if (await saveDaily({ shiftOverrides: ov })) { closeSheet(); render(); toast('Reset to original'); }
+      };
+      el.querySelector('#doneShift').onclick = closeSheet;
+    });
+  }
+
+  function editInChargeSheet() {
+    const m = dayModel();
+    if (!m.working.length) return toast('No working shifts on this day');
+    const saved = state.day.daily.inCharge || {};
+    let html = `<h2>In-charge per shift</h2><p class="hint">Picked automatically by priority unless you choose someone.</p>`;
+    m.working.forEach(g => {
+      html += `<div class="section-label">${esc(plain(g.label))}</div><div class="opt-list">
+        <button class="opt${!saved[g.label] ? ' on' : ''}" data-shift="${esc(g.label)}" data-name=""><span class="radio"></span>Automatic<small>${esc(pickInCharge(g.employees.map(e => e.name), null)?.name || '—')}</small></button>
+        ${g.employees.map(e => `<button class="opt${saved[g.label] === e.name ? ' on' : ''}" data-shift="${esc(g.label)}" data-name="${esc(e.name)}"><span class="radio"></span>${esc(e.name)}</button>`).join('')}</div>`;
+    });
+    html += `<div class="sheet-actions"><button class="primary" id="icDone">Done</button></div>`;
+    openSheet(html, el => {
+      el.querySelectorAll('[data-shift]').forEach(b => b.onclick = async () => {
+        const ic = { ...saved };
+        if (b.dataset.name) ic[b.dataset.shift] = b.dataset.name; else delete ic[b.dataset.shift];
+        if (await saveDaily({ inCharge: ic })) { render(); editInChargeSheet(); }
+      });
+      el.querySelector('#icDone').onclick = closeSheet;
+    });
+  }
+
+  function fmtUploaded(iso) {
+    const d = new Date(iso);
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function rostersSheet() {
+    let list;
+    try { list = await api('/api/rosters'); } catch (e) { return toast(e.message); }
+    const files = [...list.files].reverse();
+    const today = state.today;
+    const rows = files.map(f => {
+      const current = f.start <= today && today <= f.end;
+      return `<div class="file-row">
+        <div class="file-main"><b>${esc(f.file)}</b>${current ? ' <span class="tag mod">Current</span>' : ''}${f.activeDays === 0 ? ' <span class="tag po">Fully replaced</span>' : ''}
+          <small>${esc(rangeLabel(f.start, f.end))} · ${f.employees} people · uploaded ${esc(fmtUploaded(f.uploadedAt))}</small>
+          ${f.ignoredDates ? `<small>${f.ignoredDates} stray date column(s) ignored</small>` : ''}</div>
+        <a class="link-btn" href="/api/rosters/${encodeURIComponent(f.file)}" download aria-label="Download ${esc(f.file)}" title="Download"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14"/></svg></a>
+        <button class="link-btn" data-archive="${esc(f.file)}" aria-label="Remove ${esc(f.file)}" title="Remove"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>`;
+    }).join('');
+    openSheet(`<h2>Rosters</h2>
+      <p class="hint">All rosters are joined by date. Where two overlap, the latest upload wins for those days. Uploading a file with the same name replaces it.</p>
+      <div class="rows" style="margin-top:12px">${rows || '<div class="empty">No rosters yet.</div>'}</div>
+      ${list.uploadsEnabled ? '' : '<div class="banner">Uploads are off. Set <b>ADMIN_PIN</b> on the server to turn them on.</div>'}
+      <input type="file" id="rosterFile" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden>
+      <div class="sheet-actions"><button class="ghost" id="rsClose">Close</button><button class="primary" id="rsUpload" ${list.uploadsEnabled ? '' : 'disabled'}>Upload roster</button></div>`, el => {
+      el.querySelector('#rsClose').onclick = closeSheet;
+      const input = el.querySelector('#rosterFile');
+      el.querySelector('#rsUpload').onclick = () => input.click();
+      input.onchange = () => input.files[0] && uploadRoster(input.files[0]);
+      el.querySelectorAll('[data-archive]').forEach(b => b.onclick = () => confirmArchive(b.dataset.archive));
+    });
+  }
+
+  async function uploadRoster(file) {
+    if (!/\.xlsx$/i.test(file.name)) return toast('Choose an .xlsx file');
+    const headers = { 'Content-Type': 'application/octet-stream' };
+    if (state.pin) headers['x-admin-pin'] = state.pin;
+    toast('Uploading…');
+    const res = await fetch(`/api/rosters?name=${encodeURIComponent(file.name)}`, { method: 'POST', headers, body: file });
+    const body = await res.json().catch(() => ({}));
+    if (res.status === 401) return askPin(() => uploadRoster(file));
+    if (!res.ok) return toast(body.error || 'Upload failed');
+    toast(`${body.replaced ? 'Replaced' : 'Added'} ${body.file} · ${rangeLabel(body.start, body.end)}`);
+    await reloadAll();
+    rostersSheet();
+  }
+
+  function confirmArchive(file) {
+    openSheet(`<h2>Remove ${esc(file)}?</h2><p class="hint">It stops showing in the roster. The file is moved to the server's archive folder, not deleted.</p>
+      <div class="sheet-actions"><button class="ghost" id="caNo">Cancel</button><button class="primary" id="caYes" style="background:var(--red)">Remove</button></div>`, el => {
+      el.querySelector('#caNo').onclick = rostersSheet;
+      el.querySelector('#caYes').onclick = async () => {
+        try { await api(`/api/rosters/${encodeURIComponent(file)}`, { method: 'DELETE' }); }
+        catch (e) { if (e.status === 401) return askPin(() => confirmArchive(file)); return toast(e.message); }
+        toast('Roster removed');
+        await reloadAll();
+        rostersSheet();
+      };
+    });
+  }
+
+  async function reloadAll() {
+    state.meta = await api('/api/meta');
+    state.strip = null;
+    const r = state.meta.range;
+    if (!r) { state.day = null; $('dayBody').innerHTML = '<div class="panel"><div class="empty">No roster uploaded yet.</div></div>'; renderBottom(); return; }
+    if (state.selected < r.start || state.selected > r.end) state.selected = state.today < r.start ? r.start : state.today > r.end ? r.end : state.today;
+    state.stripStart = sundayOf(state.selected);
+    await loadDay();
+    render();
+  }
+
+  function alertsSheet() {
+    const w = state.strip;
+    const items = w ? w.days.map((d, i) => ({ d, c: w.coverage[i] })).filter(x => x.d.inRoster && x.c.gaps.length) : [];
+    const labels = Object.fromEntries((state.meta?.shiftCodes || []).map(s => [s.code, plain(s.label)]));
+    openSheet(`<h2>Coverage gaps</h2><p class="hint">Days in view with a required shift left empty.</p>
+      ${items.length ? `<div class="opt-list">${items.map(x => `<button class="opt" data-key="${x.d.key}"><span class="initials k-off" style="width:30px;height:30px;font-size:12px">${dnum(x.d.key)}</span>${esc(x.d.dayName)}<small>${x.c.gaps.map(g => esc(labels[g] || g)).join(', ')}</small></button>`).join('')}</div>`
+        : '<div class="empty">All required shifts are covered.</div>'}
+      <div class="sheet-actions"><button class="primary" id="alClose">Close</button></div>`, el => {
+      el.querySelectorAll('[data-key]').forEach(b => b.onclick = () => { closeSheet(); selectDate(b.dataset.key); switchView('day'); });
+      el.querySelector('#alClose').onclick = closeSheet;
+    });
+  }
+
+  function share() {
+    const d = state.day, m = dayModel();
+    let text = `*${d.dayName}, ${d.dateFormatted} — Roster*\n`;
+    m.groups.forEach(g => {
+      const ic = m.ic[g.label];
+      text += `\n${plain(g.label)}:\n` + g.employees.map(e => `- ${e.name}${e.rawTime ? ` (${e.rawTime})` : ''}${ic && ic.name === e.name ? ' (in-charge)' : ''}${e.calledIn ? ' — called in' : ''}`).join('\n') + '\n';
+    });
+    if (m.gaps.length) text += `\nNo one on: ${m.gaps.map(c => plain(d.shiftCodes.find(s => s.code === c).label)).join(', ')}\n`;
+    if (navigator.share && /Mobi/i.test(navigator.userAgent)) { navigator.share({ text }).catch(() => {}); return; }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+  }
+
+  // ---------- navigation ----------
+  async function selectDate(key) {
+    const [first, last] = rosterRange();
+    if (state.day && (key < first || key > last)) return;
+    state.selected = key;
+    const days = stripDays(14);
+    if (!state.stripStart || key < days[0] || key > days[13]) state.stripStart = sundayOf(key);
+    await loadDay();
+    render();
+  }
+
+  async function moveStrip(delta) {
+    state.stripStart = addDays(state.stripStart, delta);
+    if (state.view === 'week') {
+      const [first, last] = rosterRange();
+      let k = addDays(state.selected, delta);
+      if (k < first) k = first; if (k > last) k = last;
+      state.selected = k;
+      await loadDay();
+    }
+    await loadStrip();
+    render();
+  }
+
+  async function loadDay() {
+    state.day = await api(`/api/roster?date=${state.selected}`);
+    state.today = state.day.today;
+    await loadStrip();
+  }
+
+  async function loadStrip() {
+    const key = state.stripStart;
+    if (state.strip && state.strip.start === key) return;
+    try { state.strip = await api(`/api/week?date=${key}&days=14`); } catch { state.strip = null; }
+  }
+
+  function switchView(v) {
+    state.view = v;
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
+    document.querySelectorAll('.view').forEach(s => s.hidden = s.id !== `view-${v}`);
+    if (v === 'week') { state.stripStart = sundayOf(state.selected); loadStrip().then(render); return; }
+    if (v === 'day') state.stripStart = sundayOf(state.selected);
+    render();
+  }
+
+  function render() {
+    if (!state.day) return;
+    const m = !state.day.notFound ? dayModel() : null;
+    const num = $('numDay');
+    num.className = 'num' + (m ? (m.gaps.length ? ' warn' : ' ok') : '');
+    num.innerHTML = m ? (m.gaps.length ? '!' : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>') : '1';
+    const anyGaps = state.strip && state.strip.days.some((d, i) => d.inRoster && d.key >= state.today && state.strip.coverage[i].gaps.length);
+    $('bellBtn').classList.toggle('has-alert', !!anyGaps);
+
+    if (state.view === 'day') renderDay();
+    if (state.view === 'week') renderWeek();
+    if (state.view === 'duty') renderDuty();
+    if (state.view === 'me') renderMe();
+    renderBottom();
+  }
+
+  // ---------- boot ----------
+  document.querySelectorAll('.tab').forEach(t => t.onclick = () => switchView(t.dataset.view));
+  $('menuBtn').onclick = rostersSheet;
+  $('moreBtn').onclick = rostersSheet;
+  $('bellBtn').onclick = alertsSheet;
+  $('avatarBtn').onclick = () => switchView('me');
+  $('avatarBtn').textContent = state.me ? initials(state.me) : '?';
+
+  (async function boot() {
+    try {
+      state.meta = await api('/api/meta');
+      state.today = state.meta.today;
+      const r = state.meta.range;
+      if (!r) { $('dayBody').innerHTML = '<div class="panel"><div class="empty">No roster uploaded yet. Open the menu to upload one.</div></div>'; renderBottom(); return; }
+      let start = state.today;
+      if (r && (start < r.start || start > r.end)) start = start < r.start ? r.start : r.end;
+      state.selected = start;
+      state.stripStart = sundayOf(start);
+      await loadDay();
+      render();
+      api('/api/office-now').then(d => { $('numDuty').textContent = d.employees.length; }).catch(() => {});
+    } catch (e) {
+      $('dayBody').innerHTML = `<div class="panel"><div class="empty">Couldn’t load the roster: ${esc(e.message)}</div></div>`;
+    }
+  })();
+
+  // Refresh every 5 minutes, unless a sheet is open
+  setInterval(async () => {
+    if ($('sheet').classList.contains('open') || document.hidden) return;
+    try { state.strip = null; await loadDay(); render(); } catch {}
+  }, 5 * 60 * 1000);
+})();
+</script>
 </body>
 </html>

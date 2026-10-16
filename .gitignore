@@ -3,5 +3,10 @@ node_modules/
 user-data/
 .wwebjs_auth/
 .wwebjs_cache/
-group_id_log.txt
-package-lock.json
+group_id_log*.txt
+contacts.json
+data.json
+data.json.tmp
+rosters/archive/
+rosters/*.upload
+tokens/

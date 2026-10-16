@@ -6,7 +6,8 @@ const qrcode = require('qrcode-terminal');
 const path = require('path');
 const fs = require('fs');
 const config = require('./config');
-const { getAutoResponse, getOfficeNowMessage, getSalaryCountdown, getRosterCountdown } = require('./responses');
+const { getAutoResponse, getMenuReply } = require('./responses');
+const { riyadhNow, TZ } = require('./roster');
 const main = require('./main');
 
 const { contactMap, sessionName, groupName, scheduleCron, stateCheckInterval } = config;
@@ -95,7 +96,8 @@ async function start(client) {
 
   // Scheduled daily roster message
   console.log(`Scheduling "${scheduleCron}" job...`);
-  schedule.scheduleJob(scheduleCron, async () => {
+  // Cron times are Riyadh time regardless of the server's timezone
+  schedule.scheduleJob({ rule: scheduleCron, tz: TZ }, async () => {
     console.log('[Scheduler] Triggered.');
     try {
       const message = await main.getTodayRosterMessage(true);
@@ -150,18 +152,15 @@ async function start(client) {
     const lower = (message.body || '').toLowerCase().trim();
 
     // Menu number reply
-    const numOptions = ['1', '2', '3', '4', '5'];
+    const numOptions = ['1', '2', '3', '4', '5', '6'];
     const quotedBody = message.quotedMsg?.body || message.quotedMsgObj?.body || message.quotedMsg?.text || '';
     const isNumberReply = numOptions.includes(lower) && !!quotedBody && quotedBody.includes('Menu:');
 
     if (isNumberReply) {
       console.log(`Menu selection: ${lower}`);
       try {
-        if (lower === '1') return await client.sendText(message.from, await main.getTodayRosterMessage(false));
-        if (lower === '2') return await client.sendText(message.from, await main.getTodayRosterMessage(false, true));
-        if (lower === '3') return await client.sendText(message.from, getOfficeNowMessage());
-        if (lower === '4') return await client.sendText(message.from, getSalaryCountdown());
-        if (lower === '5') return await client.sendText(message.from, getRosterCountdown());
+        const reply = await getMenuReply(lower, message.author || message.from);
+        if (reply) await client.sendText(message.from, reply);
       } catch (err) {
         console.error('Menu handler error:', err);
       }
@@ -175,8 +174,9 @@ async function start(client) {
 
       if (resp) {
         const senderId = message.author || message.from;
-        const name = contactMap[senderId];
-        const hour = new Date().getHours();
+        const contact = contactMap[senderId];
+        const name = typeof contact === 'string' ? contact : contact?.name;
+        const hour = riyadhNow().hour;
         const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
         const prefix = name ? `${greeting} ${name}\n\n` : '';
 

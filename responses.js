@@ -1,7 +1,6 @@
 const config = require('./config');
 const main = require('./main');
-
-const { shiftMap, salaryDay } = config;
+const roster = require('./roster');
 
 const responses = [
   {
@@ -42,10 +41,26 @@ const responses = [
     type: "tomorrowRoster"
   },
   {
+    triggers: ["my shift", "my shifts", "my schedule", "my roster", "when do i work"],
+    type: "mySchedule"
+  },
+  {
     triggers: ["gboti"],
     type: "showMenu"
   }
 ];
+
+const MENU_TEXT = `
+📋 *Menu:*
+
+1️⃣ Today's Roster
+2️⃣ Tomorrow's Roster
+3️⃣ Who's in Office
+4️⃣ Salary Countdown
+5️⃣ Roster Countdown
+6️⃣ My Schedule (next 7 days)
+
+Type a number to continue.`.trim();
 
 function getResponseType(messageText) {
   const cleaned = messageText.toLowerCase().replace(/[^\w\s]/g, '').trim();
@@ -59,121 +74,75 @@ function getResponseType(messageText) {
   return null;
 }
 
-function getAdjustedDateForShifts() {
-  const now = new Date();
-  if (now.getHours() < 8) now.setDate(now.getDate() - 1);
-  return now;
-}
-
-// Determine which shift codes are currently active based on time of day
-function getActiveShiftCodes() {
-  const hour = new Date().getHours();
-  const codes = [];
-  if (hour >= 23 || hour < 8) codes.push('N');   // Night: 23:00 - 08:00
-  if (hour >= 8 && hour < 17) codes.push('M');    // Morning: 08:00 - 17:00
-  if (hour >= 15 && hour < 23) codes.push('E');   // Evening: 15:00 - 23:00
-  if (hour >= 12 && hour < 21) codes.push('B');   // Between: 12:00 - 21:00
-  return codes;
-}
-
 function getOfficeNowMessage() {
-  const rawData = main.loadWorkbook();
-  if (!rawData) return "❌ Shift file not found or could not be read.";
+  const data = roster.getRoster();
+  if (!data) return "❌ Shift file not found or could not be read.";
 
-  const adjustedDate = getAdjustedDateForShifts();
-  const dateCol = main.findDateColumn(rawData[0], adjustedDate);
-  if (dateCol === -1) return "❌ Date column not found.";
-
-  const activeShiftCodes = getActiveShiftCodes();
-  const employees = [];
-
-  const { employeeStartRow, employeeEndRow } = config;
-
-  for (let i = employeeStartRow; i <= Math.min(employeeEndRow, rawData.length - 1); i++) {
-    const row = rawData[i];
-    const name = (row[1] || '').toString().trim();
-    if (!name) continue;
-
-    const shift = main.parseShift(row[dateCol]);
-    if (!shift) continue;
-
-    if (activeShiftCodes.includes(shift.code)) {
-      let entry = name;
-      if (shift.rawTime) entry += ` (${shift.rawTime})`;
-      employees.push(entry);
-    }
-  }
-
-  if (employees.length === 0) {
+  const now = roster.officeNow(data);
+  if (!now.employees.length) {
     return "👥 Currently no one is in the office based on the shift schedule.";
   }
-
-  let msg = `🏢 *Currently in Office (${employees.length}):*\n\n`;
-  msg += employees.map(n => `- ${n}`).join('\n');
-  return msg;
+  const lines = now.employees.map(e => {
+    let s = `- ${e.name} — ${e.label}`;
+    if (e.rawTime) s += ` (${e.rawTime})`;
+    return s;
+  });
+  return `🏢 *Currently in Office (${now.employees.length}) — ${now.time}:*\n\n` + lines.join('\n');
 }
 
 function getSalaryCountdown() {
-  const today = new Date();
-  const currentDay = today.getDate();
-  const afterSalary = currentDay > salaryDay;
-  const nextMonth = afterSalary ? today.getMonth() + 1 : today.getMonth();
-  const nextYear = afterSalary && today.getMonth() === 11 ? today.getFullYear() + 1 : today.getFullYear();
-  const nextDate = new Date(nextYear, nextMonth, salaryDay);
-  const diff = Math.ceil((nextDate - today) / (1000 * 60 * 60 * 24));
-  return `*💰 ${diff} days left until salary*`;
+  const s = roster.salaryInfo();
+  return `*💰 ${main.formatEnglishDays(s.daysLeft)} left until salary* (${roster.formatKey(s.salaryDate)})`;
 }
 
 function getRosterCountdown() {
-  const rawData = main.loadWorkbook();
-  if (!rawData) return "❌ Shift file not found or could not be read.";
-
-  const today = new Date();
-  const dateCells = rawData[0].slice(2);
-  let remainingDays = 0;
-  for (const cell of dateCells) {
-    if (!cell) continue;
-    const cellDate = main.parseCellDate(cell, today.getFullYear());
-    if (cellDate && !isNaN(cellDate) && cellDate >= today) {
-      remainingDays++;
-    }
-  }
-  return `*📅 ${remainingDays} days left in the current roster*`;
+  const rc = roster.rosterCountdown();
+  if (!rc) return "❌ Shift file not found or could not be read.";
+  if (rc.ended) return `*📅 The current roster ended on ${roster.formatKey(rc.end)}* — waiting for the next one.`;
+  return `*📅 ${main.formatEnglishDays(rc.daysLeft)} left in the current roster* (ends ${roster.formatKey(rc.end)})`;
 }
 
-async function getAutoResponse(text, client, msg, quoted) {
+function getMySchedule(senderId) {
+  const contact = config.contactMap[senderId];
+  const rosterName = contact && (contact.roster || contact.name);
+  if (!rosterName) return "🤷 I don't know who you are yet — ask the admin to add you to contacts.json.";
+  return main.getMyScheduleMessage(rosterName)
+    || `🤷 Couldn't find "${rosterName}" in the roster.`;
+}
+
+// Handles a menu number. Returns the reply text or null.
+async function getMenuReply(choice, senderId) {
+  switch (choice) {
+    case '1': return main.getTodayRosterMessage(false);
+    case '2': return main.getTodayRosterMessage(false, true);
+    case '3': return getOfficeNowMessage();
+    case '4': return getSalaryCountdown();
+    case '5': return getRosterCountdown();
+    case '6': return getMySchedule(senderId);
+    default: return null;
+  }
+}
+
+async function getAutoResponse(text, client, msg) {
   const type = getResponseType(text);
   if (!type) return null;
 
-  if (type === "todayRoster") return await main.getTodayRosterMessage(false);
-  if (type === "tomorrowRoster") return await main.getTodayRosterMessage(false, true);
+  const senderId = msg ? (msg.author || msg.from) : null;
+  if (type === "todayRoster") return main.getTodayRosterMessage(false);
+  if (type === "tomorrowRoster") return main.getTodayRosterMessage(false, true);
   if (type === "officeNow") return getOfficeNowMessage();
   if (type === "salaryCountdown") return getSalaryCountdown();
   if (type === "rosterCountdown") return getRosterCountdown();
-
-  if (type === "showMenu") {
-    const menuText = `
-📋 *Menu:*
-
-1️⃣ Today's Roster
-2️⃣ Tomorrow's Roster
-3️⃣ Who's in Office
-4️⃣ Salary Countdown
-5️⃣ Roster Countdown
-
-Type a number to continue.`.trim();
-    return {
-      type: "menuOption",
-      content: menuText
-    };
-  }
-
+  if (type === "mySchedule") return getMySchedule(senderId);
+  if (type === "showMenu") return { type: "menuOption", content: MENU_TEXT };
   return null;
 }
 
 module.exports = {
   getAutoResponse,
+  getMenuReply,
   getOfficeNowMessage,
   getSalaryCountdown,
-  getRosterCountdown
+  getRosterCountdown,
+  getMySchedule
 };

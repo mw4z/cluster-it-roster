@@ -1,4 +1,16 @@
-require('dotenv').config();
+require('dotenv').config({ quiet: true });
+const fs = require('fs');
+const path = require('path');
+
+function loadContacts() {
+  const file = path.join(__dirname, process.env.CONTACTS_FILE || 'contacts.json');
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    if (e.code !== 'ENOENT') console.warn('Failed to read contacts file:', e.message);
+    return {};
+  }
+}
 
 module.exports = {
   // Environment variables
@@ -10,45 +22,9 @@ module.exports = {
   logFile: process.env.LOG_FILE || 'group_id_log.txt',
   maxLogSizeMB: parseInt(process.env.MAX_LOG_SIZE_MB) || 5,
 
-  // Contact mapping (sender ID -> display name)
-  contactMap: {
-    "966564375970@c.us": "Moayad",
-    "100085790691386@lid": "Moayad",
-    "966545431283@c.us": "Suhaib",
-    "8100442591323@lid": "Suhaib",
-    "966562189556@c.us": "Mostafa",
-    "143104183128090@lid": "Mostafa",
-    "966559283543@c.us": "Hatem",
-    "253364583579767@lid": "Hatem",
-    "966557894775@c.us": "Ziyad",
-    "102898876862663@lid": "Ziyad",
-    "966549991323@c.us": "Islam",
-    "201150867476531@lid": "Islam",
-    "966562375066@c.us": "Abdulrahman",
-    "51793195172054@lid": "Abdulrahman",
-    "966550507006@c.us": "Abdulrahman",
-    "117536125382671@lid": "Abdulrahman",
-    "966500500904@c.us": "Saad",
-    "219378389889192@lid": "Saad",
-    "966566678555@c.us": "Mohammed",
-    "100214539088109@lid": "Mohammed",
-    "966540317709@c.us": "Mahmoud",
-    "412451127495@lid": "Mahmoud",
-    "966546259914@c.us": "Shakeel",
-    "101142235242714@lid": "Shakeel",
-    "966569614802@c.us": "Kashif",
-    "133019700572227@lid": "Kashif",
-    "966540880234@c.us": "Khalid",
-    "36962589274185@lid": "Khalid",
-    "966545915322@c.us": "Salim",
-    "228969253199873@lid": "Salim",
-    "966551839959@c.us": "Meshari",
-    "184902670647356@lid": "Meshari",
-    "966549597890@c.us": "Abdulmajeed",
-    "134514114334927@lid": "Abdulmajeed",
-    "966567665243@c.us": "Haitham",
-    "153021128384608@lid": "Haitham"
-  },
+  // Contact mapping (WhatsApp sender ID -> { name, roster }) lives in contacts.json,
+  // which is gitignored so phone numbers stay out of the repo. See contacts.example.json.
+  contactMap: loadContacts(),
 
   // Shift code -> Display label with emoji
   shiftMap: {
@@ -82,7 +58,8 @@ module.exports = {
     "🏳️ National Holiday", "🎉 Public Holiday", "🏖️ Annual Leave"
   ],
 
-  // In-charge priority (highest first)
+  // In-charge priority (highest first). Names are matched ignoring case, commas and
+  // word order, so "Hassan, Islam" matches "Islam Hassan" in the sheet.
   inChargePriority: [
     'Salem Seif',
     'Saad Marwan',
@@ -96,16 +73,21 @@ module.exports = {
     'Hatem Asim',
     'Yasser Mattiri',
     'Meshari Alharithi',
-    'Abdulmajeed Othman',
+    'Abdulmajed Othman',
     'Haitham Sendi'
   ],
 
-  // Salary day (27th of every month)
-  salaryDay: 26,
+  // Salary day of the month
+  salaryDay: parseInt(process.env.SALARY_DAY) || 27,
 
-  // Employee data rows in Excel (first employee row, last employee row)
+  // Working shifts that must have at least one person; empty ones are flagged as gaps
+  requiredShifts: ['M', 'E', 'N'],
+
+  // PIN for dashboard edits and roster uploads. Uploads are disabled until it is set.
+  adminPin: process.env.ADMIN_PIN || '',
+
+  // First employee row in Excel (0-based); employees run until the first blank name
   employeeStartRow: 2,
-  employeeEndRow: 17,
 
   // Day names
   daysEn: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
